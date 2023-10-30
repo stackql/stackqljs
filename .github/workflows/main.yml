@@ -1,0 +1,14 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-pubish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
