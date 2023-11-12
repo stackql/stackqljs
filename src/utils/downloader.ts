@@ -26,9 +26,10 @@ export class Downloader {
     const res = await fetch(url);
     const file = await Deno.open(downloadDir, { create: true, write: true });
 
-    await res.body?.pipeTo(file.writable);
     try {
-      file.close(); //TODO: fix ERROR: [downloadFile] Bad resource ID
+      await res.body?.pipeTo(file.writable).finally(
+        () => file.close(), //TODO: fix bad resource id when closing file
+      );
     } catch (error) {
       console.error(`ERROR: [downloadFile] ${error.message}`);
     }
