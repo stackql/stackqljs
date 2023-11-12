@@ -28,7 +28,7 @@ export class Downloader {
 
     await res.body?.pipeTo(file.writable);
     try {
-      file.close();
+      file.close(); //TODO: fix ERROR: [downloadFile] Bad resource ID
     } catch (error) {
       console.error(`ERROR: [downloadFile] ${error.message}`);
     }

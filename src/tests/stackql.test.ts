@@ -4,7 +4,7 @@ import { StackQL } from "../stackql.ts";
 Deno.test("StackQL runQuery - Successful Execution", async () => {
   // Arrange
   const stackQL = new StackQL();
-  const pullQuery = "REGISTER PULL okta;";
+  const pullQuery = "REGISTRY PULL okta;";
   const testQuery = "SHOW PROVIDERS"; // Replace with a valid query for your context
 
   // Act
