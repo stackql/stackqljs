@@ -120,12 +120,9 @@ export class Downloader {
       const binaryName = this.getBinaryName();
       const url = this.getUrl();
       const downloadDir = await this.getDownloadDir();
-      console.log(
-        `Downloading latest version of stackql from ${url} to ${downloadDir}`,
-      );
       if (this.binaryExists(binaryName, downloadDir)) {
         console.log("stackql is already installed");
-        return;
+        return join(downloadDir, binaryName);
       }
       console.log("Downloading stackql binary");
       const archiveFileName = `${downloadDir}/${url.split("/").pop()}`;
