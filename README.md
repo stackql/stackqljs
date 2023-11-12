@@ -19,3 +19,8 @@
     - `execute` - execute a query returns an array of rows (objects)
     - `executeStmt` - executes a statement and returns a string (like `REGISTRY PULL` or `INSERT ...`)
     - `executeQueriesAsync` - executes a list of queries and returns an array of rows (objects) - queries need to return the same columns/schema
+
+## Test
+```
+ deno test --allow-net --allow-read --allow-write --allow-env --allow-run <test file path>
+```
