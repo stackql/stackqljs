@@ -8,25 +8,27 @@ type UnpackParams = {
 export const darwinUnpack = async (params: UnpackParams) => {
   const { downloadDir, archiveFileName } = params;
   const unpackedFileName = `${downloadDir}/stackql`;
-  const command =
-    `pkgutil --expand-full ${archiveFileName} ${unpackedFileName}`;
+  const command = `pkgutil --expand-full ${archiveFileName} ${unpackedFileName}`;
   //TODO: change Deno.run to Deno.Command
   const process = Deno.run({
     cmd: command.split(" "),
     stdout: "piped",
     stderr: "piped",
   });
-  const { code } = await process.status();
-  if (code !== 0) {
-    const output = new TextDecoder().decode(await process.output());
-    const errorOutput = new TextDecoder().decode(
-      await process.stderrOutput(),
-    );
+
+  const [status, stdout, stderr] = await Promise.all([
+    process.status(),
+    process.output(),
+    process.stderrOutput(),
+  ]);
+  process.close();
+  if (status.code !== 0) {
+    const output = new TextDecoder().decode(stdout);
+    const errorOutput = new TextDecoder().decode(stderr);
     console.error("Error executing pkgutil:", output, errorOutput);
     process.close();
     throw new Error("Failed to unpack stackql");
   }
-  process.close();
 };
 
 export const unzip = async (params: UnpackParams) => {
