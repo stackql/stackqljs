@@ -111,7 +111,20 @@ export class Downloader {
       throw error;
     }
   }
+  private async installStackQL(downloadDir: string) {
+    const url = this.getUrl();
 
+    const archiveFileName = `${downloadDir}/${url.split("/").pop()}`;
+    await this.downloadFile(url, archiveFileName);
+
+    console.log("Unpacking stackql binary");
+    const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
+    await unpacker({ downloadDir, archiveFileName });
+  }
+  private async setExecutable(binaryPath: string) {
+    const allowExecOctal = 0o755;
+    await chomod(binaryPath, allowExecOctal);
+  }
   /**
    * Setup stackql binary, check if binary exists, if not download it
    */
@@ -120,25 +133,17 @@ export class Downloader {
 
     try {
       const binaryName = this.getBinaryName();
-      const url = this.getUrl();
       const downloadDir = await this.getDownloadDir();
-      const allowExecOctal = 0o755;
+      const binaryPath = join(downloadDir, binaryName);
       if (this.binaryExists(binaryName, downloadDir)) {
         console.log("stackql is already installed");
-        const binaryPath = join(downloadDir, binaryName);
-        chomod(binaryPath, allowExecOctal);
+        await this.setExecutable(binaryPath);
         return binaryPath;
       }
 
       console.log("Downloading stackql binary");
-      const archiveFileName = `${downloadDir}/${url.split("/").pop()}`;
-      await this.downloadFile(url, archiveFileName);
-
-      console.log("Unpacking stackql binary");
-      const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
-      await unpacker({ downloadDir, archiveFileName });
-      const binaryPath = join(downloadDir, binaryName);
-      chomod(binaryPath, allowExecOctal);
+      await this.installStackQL(downloadDir);
+      await this.setExecutable(binaryPath);
       return binaryPath;
     } catch (error) {
       console.error(`ERROR: [setup] ${error.message}`);
