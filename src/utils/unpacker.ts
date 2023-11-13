@@ -10,6 +10,7 @@ export const darwinUnpack = async (params: UnpackParams) => {
   const unpackedFileName = `${downloadDir}/stackql`;
   const command =
     `pkgutil --expand-full ${archiveFileName} ${unpackedFileName}`;
+  //TODO: change Deno.run to Deno.Command
   const process = Deno.run({
     cmd: command.split(" "),
     stdout: "piped",

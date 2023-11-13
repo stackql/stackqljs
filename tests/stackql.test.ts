@@ -1,5 +1,5 @@
 import { assertStringIncludes } from "https://deno.land/std@0.206.0/assert/mod.ts";
-import { StackQL } from "../stackql.ts";
+import { StackQL } from "../src/stackql.ts";
 
 Deno.test("StackQL runQuery - Successful Execution", async () => {
   // Arrange

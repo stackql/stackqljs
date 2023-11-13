@@ -16,6 +16,7 @@ export class StackQL {
       assertExists(this.binaryPath);
     }
 
+    //TODO: change Deno.run to Deno.Command
     const process = Deno.run({
       cmd: [this.binaryPath, "exec", query], // Ensure this command is correct
       stdout: "piped",
