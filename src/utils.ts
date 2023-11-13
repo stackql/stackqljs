@@ -9,3 +9,9 @@ export const fileExists = (path: string) => {
     throw error;
   }
 };
+
+export const chomod = async (path: string, mode: number) => {
+  if (Deno.build.os !== "windows") {
+    await Deno.chmod(path, mode);
+  }
+};

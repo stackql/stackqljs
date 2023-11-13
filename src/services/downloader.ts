@@ -1,6 +1,7 @@
 import { join } from "https://deno.land/std@0.133.0/path/mod.ts";
 import { SupportedOs } from "../types/platforms.ts";
 import { darwinUnpack, unzip } from "./unpacker.ts";
+import { chomod } from "../utils.ts";
 
 export class Downloader {
   private os: string;
@@ -125,7 +126,7 @@ export class Downloader {
       if (this.binaryExists(binaryName, downloadDir)) {
         console.log("stackql is already installed");
         const binaryPath = join(downloadDir, binaryName);
-        Deno.chmodSync(binaryPath, allowExecOctal);
+        chomod(binaryPath, allowExecOctal);
         return binaryPath;
       }
 
@@ -137,7 +138,7 @@ export class Downloader {
       const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
       await unpacker({ downloadDir, archiveFileName });
       const binaryPath = join(downloadDir, binaryName);
-      Deno.chmodSync(binaryPath, allowExecOctal);
+      chomod(binaryPath, allowExecOctal);
       return binaryPath;
     } catch (error) {
       console.error(`ERROR: [setup] ${error.message}`);
