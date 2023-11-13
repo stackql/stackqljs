@@ -28,5 +28,10 @@ export const darwinUnpack = async (params: UnpackParams) => {
 
 export const unzip = async (params: UnpackParams) => {
   console.log("unzip");
-  await decompress(params.archiveFileName, params.downloadDir);
+  try {
+    await decompress(params.archiveFileName, params.downloadDir);
+  } catch (error) {
+    console.log("[unzip] error:", error);
+    throw new Error("Failed to unpack stackql");
+  }
 };
