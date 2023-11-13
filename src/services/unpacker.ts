@@ -6,6 +6,7 @@ type UnpackParams = {
 };
 
 export const darwinUnpack = async (params: UnpackParams) => {
+  console.log("darwinUnpack");
   const { downloadDir, archiveFileName } = params;
   const unpackedFileName = `${downloadDir}/stackql`;
   const commandPath = "pkgutil";
@@ -26,5 +27,6 @@ export const darwinUnpack = async (params: UnpackParams) => {
 };
 
 export const unzip = async (params: UnpackParams) => {
+  console.log("unzip");
   await decompress(params.archiveFileName, params.downloadDir);
 };
