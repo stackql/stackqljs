@@ -121,10 +121,14 @@ export class Downloader {
       const binaryName = this.getBinaryName();
       const url = this.getUrl();
       const downloadDir = await this.getDownloadDir();
+      const allowExecOctal = 0o755;
       if (this.binaryExists(binaryName, downloadDir)) {
         console.log("stackql is already installed");
-        return join(downloadDir, binaryName);
+        const binaryPath = join(downloadDir, binaryName);
+        Deno.chmodSync(binaryPath, allowExecOctal);
+        return binaryPath;
       }
+
       console.log("Downloading stackql binary");
       const archiveFileName = `${downloadDir}/${url.split("/").pop()}`;
       await this.downloadFile(url, archiveFileName);
@@ -132,7 +136,9 @@ export class Downloader {
       console.log("Unpacking stackql binary");
       const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
       await unpacker({ downloadDir, archiveFileName });
-      return join(downloadDir, binaryName);
+      const binaryPath = join(downloadDir, binaryName);
+      Deno.chmodSync(binaryPath, allowExecOctal);
+      return binaryPath;
     } catch (error) {
       console.error(`ERROR: [setup] ${error.message}`);
       Deno.exit(1);
