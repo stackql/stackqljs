@@ -18,7 +18,7 @@ export class StackQL {
   private binaryPath?: string;
   private downloader: Downloader = new Downloader();
   private serverMode = false;
-  private connection?: Client;
+  private connection?: Client; //TODO: wrap connection into Server class
   private format: "object" = "object";
   constructor() {
   }

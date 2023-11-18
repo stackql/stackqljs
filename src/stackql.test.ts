@@ -1,7 +1,6 @@
 import { assertStringIncludes } from "https://deno.land/std@0.206.0/assert/mod.ts";
 import { StackQL } from "./stackql.ts";
 import { removeStackQLDownload, startStackQLServer } from "../testing/utils.ts";
-import { assert } from "https://deno.land/std@0.160.0/_util/assert.ts";
 import {
   assertEquals,
   assertExists,
