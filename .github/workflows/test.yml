@@ -17,5 +17,9 @@ jobs:
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
+      - name: setup StackQL
+        uses: stackql/setup-stackql@v2.0.0
+        with:
+          use_wrapper: true
       - name: Run tests
         run: deno test --allow-net --allow-read --allow-write --allow-env --allow-run
