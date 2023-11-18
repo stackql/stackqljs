@@ -11,3 +11,16 @@ export const removeStackQLDownload = async () => {
     await Deno.remove(stackqlPath, { recursive: true });
   }
 };
+
+export const startStackQLServer = async (port = 5444) => {
+  const command = new Deno.Command("stackql", {
+    args: [
+      "srv",
+      "--pgsrv.address=0.0.0.0",
+      `--pgsrv.port=${port}`,
+    ],
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  await command.output();
+};

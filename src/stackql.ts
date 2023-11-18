@@ -1,20 +1,21 @@
 import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists.ts";
 import { Downloader } from "./services/downloader.ts";
+import { fileExists } from "./utils.ts";
 
 export class StackQL {
   private binaryPath?: string;
   private downloader: Downloader = new Downloader();
   constructor() {}
   private async initialize() {
+    if (fileExists(this.binaryPath)) {
+      return;
+    }
     this.binaryPath = await this.downloader.setupStackQL();
   }
 
   public async runQuery(query: string) {
-    if (!this.binaryPath) {
-      await this.initialize();
-      assertExists(this.binaryPath);
-    }
-
+    await this.initialize();
+    assertExists(this.binaryPath);
     const process = new Deno.Command(this.binaryPath, {
       args: ["exec", query], // Ensure this command is correct
       stdout: "piped",
