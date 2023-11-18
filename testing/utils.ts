@@ -22,5 +22,11 @@ export const startStackQLServer = async (port = 5444) => {
     stdout: "inherit",
     stderr: "inherit",
   });
-  await command.output();
+  const process = command.spawn();
+  const closeProcess = async () => {
+    console.log("Closing process");
+    process.kill();
+    await process.status;
+  };
+  return { closeProcess };
 };
