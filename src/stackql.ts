@@ -3,10 +3,6 @@ import { Downloader } from "./services/downloader.ts";
 import { fileExists } from "./utils.ts";
 import { Server } from "./services/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/client.ts";
-import {
-  QueryArrayResult,
-  QueryObjectResult,
-} from "https://deno.land/x/postgres@v0.17.0/query/query.ts";
 
 export interface StackQLConfig {
   binaryPath?: string;
