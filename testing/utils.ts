@@ -23,6 +23,7 @@ export const startStackQLServer = async (port = 5444) => {
     stderr: "inherit",
   });
   const process = command.spawn();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   const closeProcess = async () => {
     console.log("Closing process");
     process.kill();
