@@ -1,11 +1,13 @@
-import {
-  pgconnect,
-  PgConnection,
-} from "https://raw.githubusercontent.com/kagis/pgwire/main/mod.js";
+import { Client } from "https://deno.land/x/postgres/mod.ts";
 
 export class Server {
-  private pg: PgConnection | null = null;
-  constructor() {}
+  private client: Client | null = null;
+
+  constructor(connectionString?: string) {
+    if (connectionString) {
+      this.client = new Client(connectionString);
+    }
+  }
 
   public async connect(connectionString?: string) {
     const maxRetries = 3;
@@ -13,17 +15,18 @@ export class Server {
 
     while (currentAttempt < maxRetries) {
       try {
-        // Attempt to connect
         const connection = Deno.env.get("POSTGRES") || connectionString;
         if (!connection) {
           throw new Error(
             "Connection string not found \n Please set the POSTGRES environment variable or pass the connection string as an argument",
           );
         }
+
         console.log("connecting", connection);
-        this.pg = await pgconnect(connection);
+        this.client = new Client(connection);
+        await this.client.connect();
         console.log("connected");
-        return this.pg;
+        return this.client;
       } catch (error) {
         currentAttempt++;
         console.log(`Attempt ${currentAttempt} failed: ${error.message}`);
@@ -41,8 +44,10 @@ export class Server {
   }
 
   public async close() {
-    if (this.pg) {
-      await this.pg.end();
+    if (this.client) {
+      await this.client.end();
     }
   }
+
+  // Additional methods for query execution can be added here
 }

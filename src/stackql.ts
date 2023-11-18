@@ -1,8 +1,12 @@
 import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists.ts";
 import { Downloader } from "./services/downloader.ts";
 import { fileExists } from "./utils.ts";
-import { PgConnection } from "https://raw.githubusercontent.com/kagis/pgwire/main/mod.js";
 import { Server } from "./services/server.ts";
+import { Client } from "https://deno.land/x/postgres@v0.17.0/client.ts";
+import {
+  QueryArrayResult,
+  QueryObjectResult,
+} from "https://deno.land/x/postgres@v0.17.0/query/query.ts";
 
 export interface StackQLConfig {
   binaryPath?: string;
@@ -14,7 +18,8 @@ export class StackQL {
   private binaryPath?: string;
   private downloader: Downloader = new Downloader();
   private serverMode = false;
-  private connection?: PgConnection;
+  private connection?: Client;
+  private format: "object" = "object";
   constructor() {
   }
   public async initialize(config: StackQLConfig) {
@@ -33,6 +38,12 @@ export class StackQL {
   private async setupConnection(connectionString?: string) {
     const server = new Server();
     this.connection = await server.connect(connectionString);
+  }
+
+  public async closeConnection() {
+    if (this.connection) {
+      await this.connection.end();
+    }
   }
 
   public async runQuery(query: string) {
@@ -56,15 +67,20 @@ export class StackQL {
     }
   }
 
-  public async runServerQuery(query: string) {
+  private async queryObjectFormat(query: string) {
     assertExists(this.connection);
+    const pgResult = await this.connection.queryObject(query);
+    return pgResult.rows;
+  }
+
+  public async runServerQuery(query: string) {
     try {
-      const pgResult = await this.connection.query(query);
-      console.log("pgResult", pgResult);
-      if (pgResult.status == "OK") {
-        return pgResult.rows;
+      if (this.format === "object") {
+        const result = await this.queryObjectFormat(query);
+        return result;
       }
     } catch (error) {
+      console.error(error);
       throw new Error(`StackQL server query failed: ${error.message}`);
     }
   }

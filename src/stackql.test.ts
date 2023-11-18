@@ -1,6 +1,11 @@
 import { assertStringIncludes } from "https://deno.land/std@0.206.0/assert/mod.ts";
 import { StackQL } from "./stackql.ts";
 import { removeStackQLDownload, startStackQLServer } from "../testing/utils.ts";
+import { assert } from "https://deno.land/std@0.160.0/_util/assert.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.160.0/testing/asserts.ts";
 
 Deno.test("StackQL runQuery - Successful Execution", async () => {
   // Arrange
@@ -20,26 +25,33 @@ Deno.test("StackQL runQuery - Successful Execution", async () => {
   assertStringIncludes(result, "okta");
 });
 
-Deno.test.only("StackQL runServerQuery - Successful Execution", async () => {
+Deno.test("StackQL runServerQuery - Successful Execution", async () => {
   const { closeProcess } = await startStackQLServer();
+  const stackQL = new StackQL();
 
   try {
     // Arrange
-    const stackQL = new StackQL();
     await stackQL.initialize({
       serverMode: true,
-      connectionString: "http://127.0.0.1:5444",
+      connectionString: "postgres://postgres:password@localhost:5444/postgres",
     });
     const pullQuery = "REGISTRY PULL github;";
-    const testQuery = "SHOW PROVIDERS;"; // Replace with a valid query for your context
+    const testQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
 
     // Act
-    const pullResults = await stackQL.runServerQuery(pullQuery);
+    await stackQL.runServerQuery(pullQuery);
     const results = await stackQL.runServerQuery(testQuery);
+    assertExists(results);
+    assertEquals(results.length, 1);
+    const result = results[0] as {
+      name: string;
+    };
+    assertEquals(result.name, "repos");
 
     // Assert
   } finally {
     // Cleanup
     await closeProcess();
+    await stackQL.closeConnection();
   }
 });
