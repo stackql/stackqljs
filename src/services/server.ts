@@ -20,7 +20,6 @@ export class Server {
             "Connection string not found \n Please set the POSTGRES environment variable or pass the connection string as an argument",
           );
         }
-
         console.log("connecting", connection);
         this.pg = await pgconnect(connection);
         console.log("connected");

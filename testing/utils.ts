@@ -23,10 +23,22 @@ export const startStackQLServer = async (port = 5444) => {
     stderr: "inherit",
   });
   const process = command.spawn();
+  //TODO: find a way to wait for the server to be ready
   const closeProcess = async () => {
-    console.log("Closing process");
-    process.kill();
-    await process.status;
+    try {
+      console.log("Closing process");
+      process.kill();
+      await process.status;
+    } catch (error) {
+      const alreadyClosed = error.message.includes(
+        "Child process has already terminated",
+      );
+      if (alreadyClosed) {
+        console.log("Process already closed");
+        return;
+      }
+      throw error;
+    }
   };
   return { closeProcess };
 };
