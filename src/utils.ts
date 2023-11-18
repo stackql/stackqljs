@@ -1,4 +1,7 @@
-export const fileExists = (path: string) => {
+export const fileExists = (path?: string) => {
+  if (!path) {
+    return false;
+  }
   try {
     Deno.statSync(path);
     return true;

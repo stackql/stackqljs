@@ -21,6 +21,8 @@
     - `executeQueriesAsync` - executes a list of queries and returns an array of rows (objects) - queries need to return the same columns/schema
 
 ## Test
+### Requirement
+- To run the tests locally, [install StackQL](https://stackql.io/docs/installing-stackql) first.
 ```
  deno test --allow-net --allow-read --allow-write --allow-env --allow-run <test file path>
 ```

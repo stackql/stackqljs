@@ -1,6 +1,6 @@
 import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists.ts";
 import { Downloader } from "./downloader.ts";
-import { removeStackQLDownload } from "../../tests/utils.ts";
+import { removeStackQLDownload } from "../../testing/utils.ts";
 
 Deno.test("Downloader setupStackQL Integration Test", async () => {
   // Arrange
@@ -17,7 +17,7 @@ Deno.test("Downloader setupStackQL Integration Test", async () => {
     // Check if the binary exists after setupStackQL is called
 
     console.log(
-      "Test passed: setupStackQL completed without errors and binary exists."
+      "Test passed: setupStackQL completed without errors and binary exists.",
     );
   } catch (error) {
     console.error("Test failed:", error);
