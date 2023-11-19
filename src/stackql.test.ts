@@ -24,6 +24,24 @@ Deno.test("StackQL runQuery - Successful Execution", async () => {
   assertStringIncludes(result, "okta");
 });
 
+Deno.test.only("stackQl runQuery - Auth", async () => {
+  // Follow the setting here https://stackql.io/blog/github-provider-for-stackql-released#query-protected-resources
+
+  const stackQL = new StackQL();
+  await stackQL.initialize({
+    serverMode: false,
+  });
+  const pullQuery = "REGISTRY PULL github;";
+  const testQuery =
+    `SELECT id, name, private from github.repos.repos where owner='yunchengyang515'`; // Replace with a valid query for your context
+
+  await stackQL.runQuery(pullQuery);
+  const result = await stackQL.runQuery(testQuery);
+  console.log("result is ", result);
+
+  assertStringIncludes(result, "stackql");
+});
+
 Deno.test("StackQL runServerQuery - Successful Execution", async () => {
   const { closeProcess } = await startStackQLServer();
   const stackQL = new StackQL();

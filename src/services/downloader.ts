@@ -1,7 +1,7 @@
 import { join } from "https://deno.land/std@0.133.0/path/mod.ts";
 import { SupportedOs } from "../types/platforms.ts";
 import { darwinUnpack, unzip } from "./unpacker.ts";
-import { chomod } from "../utils.ts";
+import { chomod } from "../utils/os.ts";
 
 export class Downloader {
   private os: string;
@@ -29,7 +29,7 @@ export class Downloader {
 
     try {
       await res.body?.pipeTo(file.writable).finally(
-        () => file.close() //TODO: fix bad resource id when closing file
+        () => file.close(), //TODO: fix bad resource id when closing file
       );
     } catch (error) {
       console.error(`ERROR: [downloadFile] ${error.message}`);
