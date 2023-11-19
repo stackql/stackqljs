@@ -11,35 +11,21 @@ Deno.test("StackQL runQuery - Successful Execution", async () => {
   await removeStackQLDownload();
   const stackQL = new StackQL();
   await stackQL.initialize({ serverMode: false });
-  const pullQuery = "REGISTRY PULL okta;";
-  const testQuery = "SHOW PROVIDERS"; // Replace with a valid query for your context
+  const pullQuery = "REGISTRY PULL github;";
+  const providerQuery = "SHOW PROVIDERS";
+  const githubTestQuery =
+    `SELECT id, name from github.repos.repos where org='stackql'`;
 
   // Act
   await stackQL.runQuery(pullQuery);
-  const result = await stackQL.runQuery(testQuery);
+  const result = await stackQL.runQuery(providerQuery);
+  const githubResult = await stackQL.runQuery(githubTestQuery);
 
   // Assert
   assertStringIncludes(result, "name");
   assertStringIncludes(result, "version");
-  assertStringIncludes(result, "okta");
-});
-
-Deno.test.only("stackQl runQuery - Auth", async () => {
-  // Follow the setting here https://stackql.io/blog/github-provider-for-stackql-released#query-protected-resources
-
-  const stackQL = new StackQL();
-  await stackQL.initialize({
-    serverMode: false,
-  });
-  const pullQuery = "REGISTRY PULL github;";
-  const testQuery =
-    `SELECT id, name, private from github.repos.repos where owner='yunchengyang515'`; // Replace with a valid query for your context
-
-  await stackQL.runQuery(pullQuery);
-  const result = await stackQL.runQuery(testQuery);
-  console.log("result is ", result);
-
-  assertStringIncludes(result, "stackql");
+  assertStringIncludes(result, "github");
+  assertStringIncludes(githubResult, "stackql");
 });
 
 Deno.test("StackQL runServerQuery - Successful Execution", async () => {

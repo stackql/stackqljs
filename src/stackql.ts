@@ -3,18 +3,16 @@ import { Downloader } from "./services/downloader.ts";
 import { fileExists } from "./utils/os.ts";
 import { Server } from "./services/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/client.ts";
-import { formatAuth } from "./utils/auth.ts";
 
 export interface StackQLConfig {
   binaryPath?: string;
   serverMode?: boolean;
   connectionString?: string;
-  customAuth?: string | object;
 }
 
 export class StackQL {
   private binaryPath?: string;
-  private downloader: Downloader = new Downloader();
+  private downloader: Downloader = new Downloader(); //TODO: Change to DI
   private serverMode = false;
   private connection?: Client; //TODO: wrap connection into Server class
   private format: "object" = "object";
@@ -28,29 +26,15 @@ export class StackQL {
       await this.setupConnection(config.connectionString);
       return;
     }
-    this.setupParams(config);
     if (this.binaryPath && fileExists(this.binaryPath)) {
       return;
     }
     this.binaryPath = await this.downloader.setupStackQL();
   }
 
-  private setupParams(config: StackQLConfig) {
-    if (config.customAuth) {
-      this.setAuth(config.customAuth);
-    }
-  }
-
-  private setAuth(auth: string | object) {
-    const { authStr } = formatAuth(auth);
-    this.params.push(`--auth=${authStr}`);
-    // this.params.push(authStr);
-  }
-
   public async runQuery(query: string) {
     assertExists(this.binaryPath);
     const args = ["exec", query].concat(this.params);
-    console.log("args", args);
     const process = new Deno.Command(this.binaryPath, {
       args,
       stdout: "piped",
