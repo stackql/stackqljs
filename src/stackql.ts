@@ -1,6 +1,6 @@
 import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists.ts";
 import { Downloader } from "./services/downloader.ts";
-import { fileExists } from "./utils.ts";
+import { fileExists } from "./utils/os.ts";
 import { Server } from "./services/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/client.ts";
 
@@ -12,10 +12,11 @@ export interface StackQLConfig {
 
 export class StackQL {
   private binaryPath?: string;
-  private downloader: Downloader = new Downloader();
+  private downloader: Downloader = new Downloader(); //TODO: Change to DI
   private serverMode = false;
   private connection?: Client; //TODO: wrap connection into Server class
   private format: "object" = "object";
+  private params: string[] = [];
   constructor() {
   }
   public async initialize(config: StackQLConfig) {
@@ -31,21 +32,11 @@ export class StackQL {
     this.binaryPath = await this.downloader.setupStackQL();
   }
 
-  private async setupConnection(connectionString?: string) {
-    const server = new Server();
-    this.connection = await server.connect(connectionString);
-  }
-
-  public async closeConnection() {
-    if (this.connection) {
-      await this.connection.end();
-    }
-  }
-
   public async runQuery(query: string) {
     assertExists(this.binaryPath);
+    const args = ["exec", query].concat(this.params);
     const process = new Deno.Command(this.binaryPath, {
-      args: ["exec", query], // Ensure this command is correct
+      args,
       stdout: "piped",
       stderr: "piped",
     });
@@ -62,11 +53,22 @@ export class StackQL {
       throw new Error(`StackQL query failed: ${errorMessage}`);
     }
   }
-
+  //////////////////////Server mode related methods
   private async queryObjectFormat(query: string) {
     assertExists(this.connection);
     const pgResult = await this.connection.queryObject(query);
     return pgResult.rows;
+  }
+
+  private async setupConnection(connectionString?: string) {
+    const server = new Server();
+    this.connection = await server.connect(connectionString);
+  }
+
+  public async closeConnection() {
+    if (this.connection) {
+      await this.connection.end();
+    }
   }
 
   public async runServerQuery(query: string) {
