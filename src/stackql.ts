@@ -75,7 +75,7 @@ export class StackQL {
     assertExists(this.binaryPath);
     const args = ["exec", query].concat(this.params);
     try {
-      const result = await osUtils.runCli(this.binaryPath, args);
+      const result = await osUtils.runCommand(this.binaryPath, args);
       return result;
     } catch (error) {
       console.error(error);

@@ -45,7 +45,7 @@ Deno.test("StackQL CLI run query", async () => {
 
 Deno.test("Set properties from configs", async () => {
   await setupStackQL();
-  const runCliSpy = spy(osUtils, "runCli");
+  const runCliSpy = spy(osUtils, "runCommand");
   const stackQL = new StackQL();
   await stackQL.initialize({
     serverMode: false,

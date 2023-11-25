@@ -19,7 +19,7 @@ const chomod = async (path: string, mode: number) => {
   }
 };
 
-const runCli = async (path: string, args: string[]) => {
+const runCommand = async (path: string, args: string[]) => {
   const process = new Deno.Command(path, {
     args,
     stdout: "piped",
@@ -42,7 +42,7 @@ const runCli = async (path: string, args: string[]) => {
 const osUtils = {
   fileExists,
   chomod,
-  runCli,
+  runCommand,
 };
 
 export default osUtils;
