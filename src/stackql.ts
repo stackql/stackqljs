@@ -1,6 +1,6 @@
 import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists.ts";
 import { Downloader } from "./services/downloader.ts";
-import { fileExists } from "./utils/os.ts";
+import osUtils from "./utils/os.ts";
 import { Server } from "./services/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/client.ts";
 
@@ -8,6 +8,10 @@ export interface StackQLConfig {
   binaryPath?: string;
   serverMode?: boolean;
   connectionString?: string;
+  maxResults?: number;
+  pageLimit?: number;
+  maxDepth?: number;
+  apiTimeout?: number;
 }
 
 export class StackQL {
@@ -19,6 +23,15 @@ export class StackQL {
   private params: string[] = [];
   constructor() {
   }
+
+  getParams() {
+    return this.params;
+  }
+
+  getBinaryPath() {
+    return this.binaryPath;
+  }
+
   public async initialize(config: StackQLConfig) {
     this.binaryPath = config.binaryPath;
     this.serverMode = config.serverMode || false;
@@ -26,33 +39,50 @@ export class StackQL {
       await this.setupConnection(config.connectionString);
       return;
     }
-    if (this.binaryPath && fileExists(this.binaryPath)) {
+    if (this.binaryExist()) {
       return;
     }
     this.binaryPath = await this.downloader.setupStackQL();
+    this.setProperties(config);
+  }
+  private binaryExist() {
+    return !!this.binaryPath && osUtils.fileExists(this.binaryPath);
+  }
+
+  private setProperties(config: StackQLConfig): void {
+    if (config.maxResults !== undefined) {
+      this.params.push("--http.response.maxResults");
+      this.params.push(config.maxResults.toString());
+    }
+
+    if (config.pageLimit !== undefined) {
+      this.params.push("--http.response.pageLimit");
+      this.params.push(config.pageLimit.toString());
+    }
+
+    if (config.maxDepth !== undefined) {
+      this.params.push("--indirect.depth.max");
+      this.params.push(config.maxDepth.toString());
+    }
+
+    if (config.apiTimeout !== undefined) {
+      this.params.push("--apirequesttimeout");
+      this.params.push(config.apiTimeout.toString());
+    }
   }
 
   public async runQuery(query: string) {
     assertExists(this.binaryPath);
     const args = ["exec", query].concat(this.params);
-    const process = new Deno.Command(this.binaryPath, {
-      args,
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { code, stdout, stderr } = await process.output();
-
-    if (code === 0) {
-      const output = stdout;
-      const result = new TextDecoder().decode(output);
+    try {
+      const result = await osUtils.runCommand(this.binaryPath, args);
       return result;
-    } else {
-      const errorOutput = stderr;
-      const errorMessage = new TextDecoder().decode(errorOutput);
-      throw new Error(`StackQL query failed: ${errorMessage}`);
+    } catch (error) {
+      console.error(error);
+      throw new Error(`StackQL query failed: ${error.message}`);
     }
   }
+
   //////////////////////Server mode related methods
   private async queryObjectFormat(query: string) {
     assertExists(this.connection);
