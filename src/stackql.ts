@@ -12,6 +12,11 @@ export interface StackQLConfig {
   pageLimit?: number;
   maxDepth?: number;
   apiTimeout?: number;
+  proxyHost?: string;
+  proxyPort?: number;
+  proxyUser?: string;
+  proxyPassword?: string;
+  proxyScheme?: "http" | "https";
 }
 
 export class StackQL {
@@ -48,6 +53,37 @@ export class StackQL {
   private binaryExist() {
     return !!this.binaryPath && osUtils.fileExists(this.binaryPath);
   }
+  private setProxyProperties(config: StackQLConfig): void {
+    if (config.proxyHost !== undefined) {
+      this.params.push("--http.proxy.host");
+      this.params.push(config.proxyHost);
+    }
+
+    if (config.proxyPort !== undefined) {
+      this.params.push("--http.proxy.port");
+      this.params.push(config.proxyPort.toString());
+    }
+
+    if (config.proxyUser !== undefined) {
+      this.params.push("--http.proxy.user");
+      this.params.push(config.proxyUser);
+    }
+
+    if (config.proxyPassword !== undefined) {
+      this.params.push("--http.proxy.password");
+      this.params.push(config.proxyPassword);
+    }
+
+    if (config.proxyScheme !== undefined) {
+      if (!["http", "https"].includes(config.proxyScheme)) {
+        throw new Error(
+          `Invalid proxyScheme. Expected one of ['http', 'https'], got ${config.proxyScheme}.`,
+        );
+      }
+      this.params.push("--http.proxy.scheme");
+      this.params.push(config.proxyScheme);
+    }
+  }
 
   private setProperties(config: StackQLConfig): void {
     if (config.maxResults !== undefined) {
@@ -68,6 +104,10 @@ export class StackQL {
     if (config.apiTimeout !== undefined) {
       this.params.push("--apirequesttimeout");
       this.params.push(config.apiTimeout.toString());
+    }
+
+    if (config.proxyHost !== undefined) {
+      this.setProxyProperties(config);
     }
   }
 

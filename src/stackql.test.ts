@@ -78,6 +78,43 @@ Deno.test("Set properties from configs", async () => {
   });
 });
 
+Deno.test("Set proxy properties from configs", async () => {
+  await setupStackQL();
+  const runCliSpy = spy(osUtils, "runCommand");
+  const stackQL = new StackQL();
+  await stackQL.initialize({
+    serverMode: false,
+    proxyHost: "localhost",
+    proxyPort: 8080,
+    proxyUser: "user",
+    proxyPassword: "password",
+    proxyScheme: "https",
+  });
+  const githubTestQuery =
+    `SELECT id, name from github.repos.repos where org='stackql'`;
+
+  await stackQL.runQuery(githubTestQuery);
+
+  const params = stackQL.getParams();
+  assertEquals(params, [
+    "--http.proxy.host",
+    "localhost",
+    "--http.proxy.port",
+    "8080",
+    "--http.proxy.user",
+    "user",
+    "--http.proxy.password",
+    "password",
+    "--http.proxy.scheme",
+    "https",
+  ]);
+  const binaryPath = stackQL.getBinaryPath();
+  assert(binaryPath);
+  assertSpyCall(runCliSpy, 0, {
+    args: [binaryPath, ["exec", githubTestQuery, ...params]],
+  });
+});
+
 Deno.test("StackQL runServerQuery", async () => {
   const { closeProcess } = await startStackQLServer();
   const stackQL = new StackQL();
