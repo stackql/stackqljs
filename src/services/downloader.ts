@@ -1,7 +1,7 @@
 import { join } from "https://deno.land/std@0.133.0/path/mod.ts";
 import { SupportedOs } from "../types/platforms.ts";
 import { darwinUnpack, unzip } from "./unpacker.ts";
-import { chomod } from "../utils/os.ts";
+import osUtils from "../utils/os.ts";
 
 export class Downloader {
   private os: string;
@@ -123,7 +123,7 @@ export class Downloader {
   }
   private async setExecutable(binaryPath: string) {
     const allowExecOctal = 0o755;
-    await chomod(binaryPath, allowExecOctal);
+    await osUtils.chomod(binaryPath, allowExecOctal);
   }
   /**
    * Setup stackql binary, check if binary exists, if not download it
