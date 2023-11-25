@@ -65,8 +65,8 @@ export class StackQL {
       this.params.push(config.maxDepth.toString());
     }
 
-    this.params.push("--apirequesttimeout");
     if (config.apiTimeout !== undefined) {
+      this.params.push("--apirequesttimeout");
       this.params.push(config.apiTimeout.toString());
     }
   }
