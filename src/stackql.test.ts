@@ -8,7 +8,9 @@ import {
 import { Downloader } from "./services/downloader.ts";
 import {
   assertSpyCall,
+  resolvesNext,
   spy,
+  stub,
 } from "https://deno.land/std@0.207.0/testing/mock.ts";
 import osUtils from "./utils/os.ts";
 import { assert } from "https://deno.land/std@0.133.0/_util/assert.ts";
@@ -80,7 +82,7 @@ Deno.test("Set properties from configs", async () => {
 
 Deno.test("Set proxy properties from configs", async () => {
   await setupStackQL();
-  const runCliSpy = spy(osUtils, "runCommand");
+  const runCommandSpy = spy(osUtils, "runCommand");
   const stackQL = new StackQL();
   await stackQL.initialize({
     serverMode: false,
@@ -110,7 +112,7 @@ Deno.test("Set proxy properties from configs", async () => {
   ]);
   const binaryPath = stackQL.getBinaryPath();
   assert(binaryPath);
-  assertSpyCall(runCliSpy, 0, {
+  assertSpyCall(runCommandSpy, 0, {
     args: [binaryPath, ["exec", githubTestQuery, ...params]],
   });
 });
@@ -144,4 +146,57 @@ Deno.test("StackQL runServerQuery", async () => {
     await closeProcess();
     await stackQL.closeConnection();
   }
+});
+
+Deno.test("getVersion", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+
+  const { version, sha } = await stackQL.getVersion();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
+});
+
+Deno.test("getVersion when version and sha are undefined", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+  (stackQL as any).version = undefined;
+  (stackQL as any).sha = undefined;
+  assert((stackQL as any).version === undefined);
+  assert((stackQL as any).sha === undefined);
+
+  const { version, sha } = await stackQL.getVersion();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
+});
+
+Deno.test("upgrade", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  (stackQL as any).version = undefined;
+  (stackQL as any).sha = undefined;
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+  assert((stackQL as any).version === undefined);
+  assert((stackQL as any).sha === undefined);
+
+  const { version, sha } = await stackQL.upgrade();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
 });

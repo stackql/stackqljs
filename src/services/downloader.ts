@@ -121,20 +121,34 @@ export class Downloader {
     const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
     await unpacker({ downloadDir, archiveFileName });
   }
+
   private async setExecutable(binaryPath: string) {
     const allowExecOctal = 0o755;
     await osUtils.chomod(binaryPath, allowExecOctal);
+  }
+
+  private async downloadAndInstallStackQL({
+    downloadDir,
+    binaryName,
+  }: {
+    downloadDir: string;
+    binaryName: string;
+  }) {
+    const binaryPath = join(downloadDir, binaryName);
+    await this.installStackQL(downloadDir);
+    await this.setExecutable(binaryPath);
+    return binaryPath;
   }
   /**
    * Setup stackql binary, check if binary exists, if not download it
    */
   public async setupStackQL() {
-    console.log("Installing stackql...");
-
     try {
       const binaryName = this.getBinaryName();
       const downloadDir = await this.getDownloadDir();
-      const binaryPath = join(downloadDir, binaryName);
+
+      let binaryPath = join(downloadDir, binaryName);
+
       if (this.binaryExists(binaryName, downloadDir)) {
         console.log("stackql is already installed");
         await this.setExecutable(binaryPath);
@@ -142,12 +156,24 @@ export class Downloader {
       }
 
       console.log("Downloading stackql binary");
-      await this.installStackQL(downloadDir);
-      await this.setExecutable(binaryPath);
+      binaryPath = await this.downloadAndInstallStackQL({
+        downloadDir,
+        binaryName,
+      });
       return binaryPath;
     } catch (error) {
       console.error(`ERROR: [setup] ${error.message}`);
       Deno.exit(1);
     }
+  }
+
+  public async upgradeStackQL() {
+    const binaryName = this.getBinaryName();
+    const downloadDir = await this.getDownloadDir();
+    const binaryPath = await this.downloadAndInstallStackQL({
+      downloadDir,
+      binaryName,
+    });
+    return binaryPath;
   }
 }

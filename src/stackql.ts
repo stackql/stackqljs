@@ -20,12 +20,14 @@ export interface StackQLConfig {
 }
 
 export class StackQL {
-  private binaryPath?: string;
-  private downloader: Downloader = new Downloader(); //TODO: Change to DI
+  private binaryPath?: string; //The full path of the `stackql` executable (not supported in `server_mode`).
+  private downloader: Downloader = new Downloader();
   private serverMode = false;
-  private connection?: Client; //TODO: wrap connection into Server class
+  private connection?: Client;
   private format: "object" = "object";
   private params: string[] = [];
+  private version: string | undefined; // The version number of the `stackql` executable (not supported in `server_mode`)
+  private sha: string | undefined; // The commit (short) sha for the installed `stackql` binary build  (not supported in `server_mode`).
   constructor() {
   }
 
@@ -35,6 +37,34 @@ export class StackQL {
 
   getBinaryPath() {
     return this.binaryPath;
+  }
+
+  async getVersion() {
+    if (!this.version) {
+      await this.updateVersion();
+    }
+
+    return { version: this.version, sha: this.sha };
+  }
+
+  private async updateVersion() {
+    if (!this.binaryPath) {
+      throw new Error("Binary path not found");
+    }
+    const output = await osUtils.runCommand(this.binaryPath, ["--version"]);
+    if (output) {
+      const versionTokens: string[] = output.split("\n")[0].split(" ");
+      const version: string = versionTokens[1];
+      const sha: string = versionTokens[3].replace("(", "").replace(")", "");
+
+      this.version = version;
+      this.sha = sha;
+    }
+  }
+  async upgrade() {
+    this.binaryPath = await this.downloader.upgradeStackQL();
+    await this.updateVersion();
+    return this.getVersion();
   }
 
   public async initialize(config: StackQLConfig) {
