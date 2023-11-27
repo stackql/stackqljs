@@ -2,7 +2,6 @@ import { assertExists } from "https://deno.land/std@0.206.0/assert/assert_exists
 import { Downloader } from "./downloader.ts";
 import { removeStackQLDownload } from "../../testing/utils.ts";
 import {
-  assertSpyCall,
   assertSpyCalls,
   spy,
 } from "https://deno.land/std@0.207.0/testing/mock.ts";

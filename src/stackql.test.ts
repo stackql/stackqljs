@@ -186,7 +186,7 @@ Deno.test("getVersion when version and sha are undefined", async () => {
   assert(shaRegex.test(sha));
 });
 
-Deno.test("upgrade", async () => {
+Deno.test("upgrade stackql", async () => {
   await setupStackQL();
   const stackQL = new StackQL();
   await stackQL.initialize({ serverMode: false });
