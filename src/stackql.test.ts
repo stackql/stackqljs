@@ -76,6 +76,7 @@ Deno.test("Set properties from configs", async () => {
   assertSpyCall(runCliSpy, 0, {
     args: [binaryPath, ["exec", githubTestQuery, ...params]],
   });
+  runCliSpy.restore();
 });
 
 Deno.test("Set proxy properties from configs", async () => {
@@ -113,6 +114,7 @@ Deno.test("Set proxy properties from configs", async () => {
   assertSpyCall(runCommandSpy, 0, {
     args: [binaryPath, ["exec", githubTestQuery, ...params]],
   });
+  runCommandSpy.restore();
 });
 
 Deno.test("StackQL runServerQuery", async () => {
