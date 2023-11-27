@@ -8,9 +8,7 @@ import {
 import { Downloader } from "./services/downloader.ts";
 import {
   assertSpyCall,
-  resolvesNext,
   spy,
-  stub,
 } from "https://deno.land/std@0.207.0/testing/mock.ts";
 import osUtils from "./utils/os.ts";
 import { assert } from "https://deno.land/std@0.133.0/_util/assert.ts";
@@ -169,9 +167,13 @@ Deno.test("getVersion when version and sha are undefined", async () => {
   await stackQL.initialize({ serverMode: false });
   const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
   const shaRegex = /^[a-f0-9]{7}$/;
+  // deno-lint-ignore no-explicit-any
   (stackQL as any).version = undefined;
+  // deno-lint-ignore no-explicit-any
   (stackQL as any).sha = undefined;
+  // deno-lint-ignore no-explicit-any
   assert((stackQL as any).version === undefined);
+  // deno-lint-ignore no-explicit-any
   assert((stackQL as any).sha === undefined);
 
   const { version, sha } = await stackQL.getVersion();
@@ -186,11 +188,15 @@ Deno.test("upgrade", async () => {
   await setupStackQL();
   const stackQL = new StackQL();
   await stackQL.initialize({ serverMode: false });
+  // deno-lint-ignore no-explicit-any
   (stackQL as any).version = undefined;
+  // deno-lint-ignore no-explicit-any
   (stackQL as any).sha = undefined;
   const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
   const shaRegex = /^[a-f0-9]{7}$/;
+  // deno-lint-ignore no-explicit-any
   assert((stackQL as any).version === undefined);
+  // deno-lint-ignore no-explicit-any
   assert((stackQL as any).sha === undefined);
 
   const { version, sha } = await stackQL.upgrade();
