@@ -24,7 +24,7 @@ Deno.test("Downloader setupStackQL and upgrade Test", async () => {
       // Check if the binary exists after setupStackQL is called
 
       console.log(
-        "Test passed: setupStackQL completed without errors and binary exists.",
+        "Test passed: setupStackQL completed without errors and binary exists."
       );
     } catch (error) {
       console.error("Test failed:", error);
@@ -34,9 +34,7 @@ Deno.test("Downloader setupStackQL and upgrade Test", async () => {
 
   const upgradeTest = async () => {
     try {
-      Deno.statSync(binaryPath);
-
-      await downloader.upgradeStackQL();
+      binaryPath = await downloader.upgradeStackQL();
 
       assertExists(binaryPath);
       assertSpyCalls(denoOpenSpy, 2);
