@@ -1,5 +1,6 @@
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std@0.133.0/path/mod.ts";
+import { parse } from "https://deno.land/std@0.134.0/encoding/csv.ts";
 
 export const removeStackQLDownload = async () => {
   const projectDir = Deno.cwd();
@@ -41,4 +42,22 @@ export const startStackQLServer = async (port = 5444) => {
     }
   };
   return { closeProcess };
+};
+
+export const isJsonString = (str: string) => {
+  try {
+    JSON.parse(str);
+  } catch (_error) {
+    return false;
+  }
+  return true;
+};
+
+export const isCsvString = async (str: string) => {
+  try {
+    await parse(str);
+  } catch (_error) {
+    return false;
+  }
+  return true;
 };
