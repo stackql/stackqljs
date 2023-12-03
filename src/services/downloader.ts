@@ -7,7 +7,6 @@ export class Downloader {
   private os: string;
   private arch: string;
   private urlMap: Record<string, string>;
-
   constructor() {
     this.os = Deno.build.os; // 'linux', 'darwin', or 'windows'
     this.arch = Deno.build.arch; // 'x86_64', 'arm64', etc.
@@ -25,11 +24,13 @@ export class Downloader {
 
   private async downloadFile(url: string, downloadDir: string) {
     const res = await fetch(url);
+    // create dir if not exists
+
     const file = await Deno.open(downloadDir, { create: true, write: true });
 
     try {
       await res.body?.pipeTo(file.writable).finally(
-        () => file.close(), //TODO: fix bad resource id when closing file
+        () => file.close() //TODO: fix bad resource id when closing file
       );
     } catch (error) {
       console.error(`ERROR: [downloadFile] ${error.message}`);
@@ -69,20 +70,7 @@ export class Downloader {
     return binaryMap[binaryOs];
   }
 
-  /**
-   * Gets download dir
-   * @returns download dir
-   */
-  private async getDownloadDir(): Promise<string> {
-    const projectDir = Deno.cwd();
-    console.log("Project dir:", projectDir);
-
-    if (!projectDir) {
-      throw new Error("Unable to determine the project directory.");
-    }
-
-    const downloadDir = join(projectDir, ".stackql");
-
+  private async createDownloadDir(downloadDir: string) {
     try {
       const stat = await Deno.stat(downloadDir);
       if (!stat.isDirectory) {
@@ -95,6 +83,19 @@ export class Downloader {
         throw error;
       }
     }
+  }
+  /**
+   * Gets download dir
+   * @returns download dir
+   */
+  private getDownloadDir(): string {
+    const projectDir = Deno.cwd();
+
+    if (!projectDir) {
+      throw new Error("Unable to determine the project directory.");
+    }
+
+    const downloadDir = join(projectDir, ".stackql");
 
     return downloadDir;
   }
@@ -121,33 +122,68 @@ export class Downloader {
     const unpacker = Deno.build.os === "darwin" ? darwinUnpack : unzip;
     await unpacker({ downloadDir, archiveFileName });
   }
+
   private async setExecutable(binaryPath: string) {
     const allowExecOctal = 0o755;
     await osUtils.chomod(binaryPath, allowExecOctal);
+  }
+
+  private async downloadAndInstallStackQL({
+    downloadDir,
+    binaryName,
+  }: {
+    downloadDir: string;
+    binaryName: string;
+  }) {
+    const binaryPath = join(downloadDir, binaryName);
+    await this.installStackQL(downloadDir);
+    await this.setExecutable(binaryPath);
+    return binaryPath;
   }
   /**
    * Setup stackql binary, check if binary exists, if not download it
    */
   public async setupStackQL() {
-    console.log("Installing stackql...");
-
     try {
       const binaryName = this.getBinaryName();
-      const downloadDir = await this.getDownloadDir();
-      const binaryPath = join(downloadDir, binaryName);
+      const downloadDir = this.getDownloadDir();
+      await this.createDownloadDir(downloadDir);
+
+      let binaryPath = join(downloadDir, binaryName);
+
       if (this.binaryExists(binaryName, downloadDir)) {
-        console.log("stackql is already installed");
         await this.setExecutable(binaryPath);
         return binaryPath;
       }
 
-      console.log("Downloading stackql binary");
-      await this.installStackQL(downloadDir);
-      await this.setExecutable(binaryPath);
+      binaryPath = await this.downloadAndInstallStackQL({
+        downloadDir,
+        binaryName,
+      });
       return binaryPath;
     } catch (error) {
       console.error(`ERROR: [setup] ${error.message}`);
       Deno.exit(1);
     }
+  }
+
+  private async removeStackQL() {
+    const downloadDir = this.getDownloadDir();
+    await Deno.remove(join(downloadDir, "/"), { recursive: true });
+    console.log("stackql download dir removed");
+  }
+
+  public async upgradeStackQL() {
+    if (Deno.build.os === "darwin") {
+      await this.removeStackQL();
+    }
+    const binaryName = this.getBinaryName();
+    const downloadDir = this.getDownloadDir();
+    await this.createDownloadDir(downloadDir);
+    const binaryPath = await this.downloadAndInstallStackQL({
+      downloadDir,
+      binaryName,
+    });
+    return binaryPath;
   }
 }

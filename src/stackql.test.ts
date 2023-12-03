@@ -76,6 +76,45 @@ Deno.test("Set properties from configs", async () => {
   assertSpyCall(runCliSpy, 0, {
     args: [binaryPath, ["exec", githubTestQuery, ...params]],
   });
+  runCliSpy.restore();
+});
+
+Deno.test("Set proxy properties from configs", async () => {
+  await setupStackQL();
+  const runCommandSpy = spy(osUtils, "runCommand");
+  const stackQL = new StackQL();
+  await stackQL.initialize({
+    serverMode: false,
+    proxyHost: "localhost",
+    proxyPort: 8080,
+    proxyUser: "user",
+    proxyPassword: "password",
+    proxyScheme: "https",
+  });
+  const githubTestQuery =
+    `SELECT id, name from github.repos.repos where org='stackql'`;
+
+  await stackQL.runQuery(githubTestQuery);
+
+  const params = stackQL.getParams();
+  assertEquals(params, [
+    "--http.proxy.host",
+    "localhost",
+    "--http.proxy.port",
+    "8080",
+    "--http.proxy.user",
+    "user",
+    "--http.proxy.password",
+    "password",
+    "--http.proxy.scheme",
+    "https",
+  ]);
+  const binaryPath = stackQL.getBinaryPath();
+  assert(binaryPath);
+  assertSpyCall(runCommandSpy, 0, {
+    args: [binaryPath, ["exec", githubTestQuery, ...params]],
+  });
+  runCommandSpy.restore();
 });
 
 Deno.test("StackQL runServerQuery", async () => {
@@ -107,4 +146,65 @@ Deno.test("StackQL runServerQuery", async () => {
     await closeProcess();
     await stackQL.closeConnection();
   }
+});
+
+Deno.test("getVersion", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+
+  const { version, sha } = await stackQL.getVersion();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
+});
+
+Deno.test("getVersion when version and sha are undefined", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+  // deno-lint-ignore no-explicit-any
+  (stackQL as any).version = undefined;
+  // deno-lint-ignore no-explicit-any
+  (stackQL as any).sha = undefined;
+  // deno-lint-ignore no-explicit-any
+  assert((stackQL as any).version === undefined);
+  // deno-lint-ignore no-explicit-any
+  assert((stackQL as any).sha === undefined);
+
+  const { version, sha } = await stackQL.getVersion();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
+});
+
+Deno.test("upgrade stackql", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({ serverMode: false });
+  // deno-lint-ignore no-explicit-any
+  (stackQL as any).version = undefined;
+  // deno-lint-ignore no-explicit-any
+  (stackQL as any).sha = undefined;
+  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
+  const shaRegex = /^[a-f0-9]{7}$/;
+  // deno-lint-ignore no-explicit-any
+  assert((stackQL as any).version === undefined);
+  // deno-lint-ignore no-explicit-any
+  assert((stackQL as any).sha === undefined);
+
+  const { version, sha } = await stackQL.upgrade();
+
+  assert(version);
+  assert(sha);
+  assert(versionRegex.test(version));
+  assert(shaRegex.test(sha));
 });
