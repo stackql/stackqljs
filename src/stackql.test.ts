@@ -1,6 +1,10 @@
 import { assertStringIncludes } from "https://deno.land/std@0.206.0/assert/mod.ts";
 import { StackQL } from "./stackql.ts";
-import { startStackQLServer } from "../testing/utils.ts";
+import {
+  isCsvString,
+  isJsonString,
+  startStackQLServer,
+} from "../testing/utils.ts";
 import {
   assertEquals,
   assertExists,
@@ -115,6 +119,49 @@ Deno.test("Set proxy properties from configs", async () => {
     args: [binaryPath, ["exec", githubTestQuery, ...params]],
   });
   runCommandSpy.restore();
+});
+
+Deno.test("run query Output: json", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({
+    serverMode: false,
+    outputFormat: "json",
+  });
+  const githubTestQuery =
+    `SELECT id, name from github.repos.repos where org='stackql'`;
+
+  const result = await stackQL.runQuery(githubTestQuery);
+
+  const params = stackQL.getParams();
+
+  assertEquals(params, [
+    "--output",
+    "json",
+  ]);
+  assert(isJsonString(result));
+  assert(!(await isCsvString(result)));
+});
+
+Deno.test("run query Output: csv", async () => {
+  await setupStackQL();
+  const stackQL = new StackQL();
+  await stackQL.initialize({
+    serverMode: false,
+    outputFormat: "csv",
+  });
+  const githubTestQuery =
+    `SELECT id, name from github.repos.repos where org='stackql'`;
+
+  const result = await stackQL.runQuery(githubTestQuery);
+  const params = stackQL.getParams();
+
+  assertEquals(params, [
+    "--output",
+    "csv",
+  ]);
+  assert(!isJsonString(result));
+  assert(await isCsvString(result));
 });
 
 Deno.test("StackQL runServerQuery", async () => {

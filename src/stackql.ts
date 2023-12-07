@@ -17,6 +17,7 @@ export interface StackQLConfig {
   proxyUser?: string;
   proxyPassword?: string;
   proxyScheme?: "http" | "https";
+  outputFormat?: "csv" | "json";
 }
 
 export class StackQL {
@@ -24,7 +25,7 @@ export class StackQL {
   private downloader: Downloader = new Downloader();
   private serverMode = false;
   private connection?: Client;
-  private format: "object" = "object";
+  private outputFormat: "csv" | "json" = "json";
   private params: string[] = [];
   private version: string | undefined; // The version number of the `stackql` executable (not supported in `server_mode`)
   private sha: string | undefined; // The commit (short) sha for the installed `stackql` binary build  (not supported in `server_mode`).
@@ -47,6 +48,13 @@ export class StackQL {
     return { version: this.version, sha: this.sha };
   }
 
+  async execute(query: string) {
+    if (this.serverMode) {
+      const result = await this.runServerQuery(query);
+    }
+    return await this.runQuery(query);
+  }
+
   private async updateVersion() {
     if (!this.binaryPath) {
       throw new Error("Binary path not found");
@@ -61,12 +69,22 @@ export class StackQL {
       this.sha = sha;
     }
   }
+
+  /**
+   * Upgrade the `stackql` executable to the latest version
+   * @returns The version number of the `stackql` executable (not supported in `server_mode`)
+   */
   async upgrade() {
     this.binaryPath = await this.downloader.upgradeStackQL();
     await this.updateVersion();
     return this.getVersion();
   }
 
+  /**
+   * Initialize the `stackql` executable
+   * @param config The configuration object
+   * @returns The binary path of the `stackql` executable if `server_mode` is `false`, otherwise `undefined`
+   */
   public async initialize(config: StackQLConfig) {
     this.binaryPath = config.binaryPath;
     this.serverMode = config.serverMode || false;
@@ -80,6 +98,7 @@ export class StackQL {
     this.binaryPath = await this.downloader.setupStackQL();
     this.setProperties(config);
   }
+
   private binaryExist() {
     return !!this.binaryPath && osUtils.fileExists(this.binaryPath);
   }
@@ -139,8 +158,24 @@ export class StackQL {
     if (config.proxyHost !== undefined) {
       this.setProxyProperties(config);
     }
+
+    if (config.outputFormat !== undefined) {
+      if (!["csv", "json"].includes(config.outputFormat)) {
+        throw new Error(
+          `Invalid outputFormat. Expected one of ['csv', 'json'], got ${config.outputFormat}.`,
+        );
+      }
+      this.params.push("--output");
+      this.params.push(config.outputFormat);
+      this.outputFormat = config.outputFormat;
+    }
   }
 
+  /**
+   * Run a StackQL query
+   * @param query The StackQL query
+   * @returns The result of the query
+   */
   public async runQuery(query: string) {
     assertExists(this.binaryPath);
     const args = ["exec", query].concat(this.params);
@@ -165,15 +200,23 @@ export class StackQL {
     this.connection = await server.connect(connectionString);
   }
 
+  /**
+   * Close the connection to the stackql server
+   */
   public async closeConnection() {
     if (this.connection) {
       await this.connection.end();
     }
   }
 
+  /**
+   * Run a StackQL query on the server
+   * @param query The StackQL query
+   * @returns The result of the query
+   */
   public async runServerQuery(query: string) {
     try {
-      if (this.format === "object") {
+      if (this.outputFormat === "json") {
         const result = await this.queryObjectFormat(query);
         return result;
       }
