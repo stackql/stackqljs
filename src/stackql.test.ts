@@ -16,6 +16,7 @@ import {
 } from 'https://deno.land/std@0.207.0/testing/mock.ts'
 import osUtils from './utils/os.ts'
 import { assert } from 'https://deno.land/std@0.133.0/_util/assert.ts'
+import { assertThrows } from 'https://deno.land/std@0.206.0/assert/assert_throws.ts'
 
 const downloader = new Downloader()
 
@@ -164,6 +165,32 @@ Deno.test('Query: csv output', async () => {
 	assert(await isCsvString(result))
 })
 
+Deno.test('Server mode: csv output throw error', async () => {
+	const { closeProcess } = await startStackQLServer()
+	const stackQL = new StackQL()
+	try {
+		await stackQL.initialize({
+			serverMode: true,
+			outputFormat: 'csv',
+			connectionString:
+				'postgres://postgres:password@localhost:5444/postgres',
+		})
+		const testQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';' // Replace with a valid query for your context
+
+		await stackQL.execute(testQuery)
+	} catch (error) {
+		assert(error)
+		assert(
+			error.message.includes(
+				'csv output is not supported in server mode',
+			),
+		)
+	} finally {
+		await closeProcess()
+		await stackQL.closeConnection()
+	}
+})
+
 Deno.test('Server mode: Query', async () => {
 	const { closeProcess } = await startStackQLServer()
 	const stackQL = new StackQL()
@@ -181,14 +208,14 @@ Deno.test('Server mode: Query', async () => {
 		// Act
 		await stackQL.execute(pullQuery)
 		const results = await stackQL.execute(testQuery)
+
 		assertExists(results)
-		assertEquals(results.length, 1)
-		const result = results[0] as {
+		const resultObj = JSON.parse(results)
+		assertEquals(resultObj.length, 1)
+		const result = resultObj[0] as {
 			name: string
 		}
 		assertEquals(result.name, 'repos')
-
-		// Assert
 	} finally {
 		// Cleanup
 		await closeProcess()
@@ -244,9 +271,7 @@ Deno.test('Upgrade: upgrade stackql', async () => {
 	assert((stackQL as any).version === undefined)
 	// deno-lint-ignore no-explicit-any
 	assert((stackQL as any).sha === undefined)
-
 	const { version, sha } = await stackQL.upgrade()
-
 	assert(version)
 	assert(sha)
 	assert(versionRegex.test(version))

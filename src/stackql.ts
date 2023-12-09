@@ -17,7 +17,7 @@ export interface StackQLConfig {
 	proxyUser?: string
 	proxyPassword?: string
 	proxyScheme?: 'http' | 'https'
-	outputFormat?: 'csv' | 'json'
+	outputFormat?: 'csv' | 'json' // csv is not supported in server mode
 }
 
 export class StackQL {
@@ -76,21 +76,21 @@ export class StackQL {
 	 * environments, which could be an object or a string.
 	 *
 	 * @param query - The StackQL query string to be executed.
-	 * @returns The output result of the query. The type of the result can vary
-	 *          depending on the implementation and the output format specified.
+	 * @returns The output string result of the query.
 	 *
 	 * Example:
 	 * ```
 	 * const stackql = new StackQL();
+	 * await stackql.initialize({ serverMode: false });
 	 * const stackqlQuery = `SELECT ... FROM ... WHERE ...`;
 	 * const result = await stackql.execute(stackqlQuery);
 	 * ```
 	 */
-	async execute(query: string): Promise<any> {
+	async execute(query: string): Promise<string> {
 		if (this.serverMode) {
 			// Execute the query using the server
 			const result = await this.runServerQuery(query)
-			return result
+			return result || ''
 		} else {
 			// Execute the query locally
 			return await this.runQuery(query)
@@ -221,12 +221,6 @@ export class StackQL {
 		return pgResult.rows
 	}
 
-	private async queryCSVFormat(query: string) {
-		assertExists(this.connection)
-		const pgResult = await this.connection.queryArray(query)
-		return pgResult.rows
-	}
-
 	private async setupConnection(connectionString?: string) {
 		const server = new Server()
 		this.connection = await server.connect(connectionString)
@@ -250,11 +244,10 @@ export class StackQL {
 		try {
 			if (this.outputFormat === 'json') {
 				const result = await this.queryObjectFormat(query)
-				return result
+				return JSON.stringify(result)
 			}
 			if (this.outputFormat === 'csv') {
-				const result = await this.queryCSVFormat(query)
-				return result
+				throw new Error('CSV output is not supported in server mode')
 			}
 		} catch (error) {
 			console.error(error)
