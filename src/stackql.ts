@@ -17,7 +17,7 @@ export interface StackQLConfig {
 	proxyUser?: string;
 	proxyPassword?: string;
 	proxyScheme?: 'http' | 'https';
-	outputFormat?: 'csv' | 'json'; // csv is not supported in server mode
+	outputFormat?: 'csv' | 'object'; // csv is not supported in server mode
 }
 
 export class StackQL {
@@ -25,7 +25,7 @@ export class StackQL {
 	private downloader: Downloader = new Downloader();
 	private serverMode = false;
 	private connection?: Client;
-	private outputFormat: 'csv' | 'json' = 'json';
+	private outputFormat: 'csv' | 'object' = 'object';
 	private params: string[] = [];
 	private version: string | undefined; // The version number of the `stackql` executable (not supported in `server_mode`)
 	private sha: string | undefined; // The commit (short) sha for the installed `stackql` binary build  (not supported in `server_mode`).
@@ -91,12 +91,12 @@ export class StackQL {
 		if (this.serverMode) {
 			// Execute the query using the server
 			const result = await this.runServerQuery(query);
-			return result || '';
+			return result as unknown[];
 		}
 		// Execute the query locally
 		const result = await this.runQuery(query);
 
-		if (this.outputFormat === 'json') {
+		if (this.outputFormat === 'object') {
 			try {
 				return JSON.parse(result) as unknown[];
 			} catch (error) {
@@ -109,8 +109,8 @@ export class StackQL {
 
 	async executeStatement(statement: string): Promise<string> {
 		if (this.serverMode) {
-			const result = await this.runServerQuery(statement);
-			return result || '';
+			await this.runServerQuery(statement);
+			return 'Statement executed';
 		}
 		const result = await this.runQuery(statement);
 		return result;
@@ -127,7 +127,7 @@ export class StackQL {
 		// Parse each result as JSON and return the combined array
 		return results.map((result) => {
 			try {
-				if (this.outputFormat === 'json') {
+				if (this.outputFormat === 'object') {
 					return JSON.parse(result);
 				}
 				return result;
@@ -230,16 +230,16 @@ export class StackQL {
 
 	private setOutputFormat(config: StackQLConfig): void {
 		if (config.outputFormat !== undefined) {
-			if (!['csv', 'json'].includes(config.outputFormat)) {
+			if (!['csv', 'object'].includes(config.outputFormat)) {
 				throw new Error(
-					`Invalid outputFormat. Expected one of ['csv', 'json'], got ${config.outputFormat}.`,
+					`Invalid outputFormat. Expected one of ['csv', 'object'], got ${config.outputFormat}.`,
 				);
 			}
 			this.outputFormat = config.outputFormat;
 		}
-		console.log(this.outputFormat);
+		const outputParamValue = this.outputFormat === 'csv' ? 'csv' : 'json';
 		this.params.push('--output');
-		this.params.push(this.outputFormat);
+		this.params.push(outputParamValue);
 	}
 
 	/**
@@ -287,13 +287,10 @@ export class StackQL {
 	 */
 	private async runServerQuery(query: string) {
 		try {
-			if (this.outputFormat === 'json') {
-				const result = await this.queryObjectFormat(query);
-				return JSON.stringify(result);
-			}
 			if (this.outputFormat === 'csv') {
 				throw new Error('CSV output is not supported in server mode');
 			}
+			return await this.queryObjectFormat(query);
 		} catch (error) {
 			console.error(error);
 			throw new Error(`StackQL server query failed: ${error.message}`);

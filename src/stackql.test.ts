@@ -12,7 +12,6 @@ import {
 } from 'https://deno.land/std@0.207.0/testing/mock.ts';
 import osUtils from './utils/os.ts';
 import { assert } from 'https://deno.land/std@0.133.0/_util/assert.ts';
-import { assertThrows } from 'https://deno.land/std@0.206.0/assert/assert_throws.ts';
 
 const downloader = new Downloader();
 
@@ -65,7 +64,7 @@ Deno.test('Configuration: Apply Settings from Configs', async () => {
 	await stackQL.execute(githubTestQuery);
 
 	const params = stackQL.getParams();
-	assertEquals(params.length, 8);
+	assertEquals(params.length, 10);
 	assertEquals(params, [
 		'--http.response.maxResults',
 		'100',
@@ -75,6 +74,8 @@ Deno.test('Configuration: Apply Settings from Configs', async () => {
 		'5',
 		'--apirequesttimeout',
 		'5000',
+		'--output',
+		'json',
 	]);
 	const binaryPath = stackQL.getBinaryPath();
 	assert(binaryPath);
@@ -113,6 +114,8 @@ Deno.test('Configuration: Apply Proxy Settings from Configs', async () => {
 		'password',
 		'--http.proxy.scheme',
 		'https',
+		'--output',
+		'json',
 	]);
 	const binaryPath = stackQL.getBinaryPath();
 	assert(binaryPath);
@@ -127,7 +130,7 @@ Deno.test('Query: json output', async () => {
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
-		outputFormat: 'json',
+		outputFormat: 'object',
 	});
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`;
@@ -202,16 +205,16 @@ Deno.test('Server mode: Query', async () => {
 				'postgres://postgres:password@localhost:5444/postgres',
 		});
 		const pullQuery = 'REGISTRY PULL github;';
-		const testQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';'; // Replace with a valid query for your context
+		const showServiceQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';'; // Replace with a valid query for your context
 
 		// Act
-		await stackQL.execute(pullQuery);
-		const results = await stackQL.execute(testQuery);
+		await stackQL.executeStatement(pullQuery);
+		const showServiceResult = await stackQL.execute(showServiceQuery);
 
-		assertExists(results);
-		const resultObj = JSON.parse(results);
-		assertEquals(resultObj.length, 1);
-		const result = resultObj[0] as {
+		assertExists(showServiceResult);
+		assert(Array.isArray(showServiceResult));
+		assertEquals(showServiceResult.length, 1);
+		const result = showServiceResult[0] as {
 			name: string;
 		};
 		assertEquals(result.name, 'repos');
