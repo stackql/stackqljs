@@ -1,257 +1,254 @@
-import { assertStringIncludes } from "https://deno.land/std@0.206.0/assert/mod.ts";
-import { StackQL } from "./stackql.ts";
+import { assertStringIncludes } from 'https://deno.land/std@0.206.0/assert/mod.ts'
+import { StackQL } from './stackql.ts'
 import {
-  isCsvString,
-  isJsonString,
-  startStackQLServer,
-} from "../testing/utils.ts";
+	isCsvString,
+	isJsonString,
+	startStackQLServer,
+} from '../testing/utils.ts'
 import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.160.0/testing/asserts.ts";
-import { Downloader } from "./services/downloader.ts";
+	assertEquals,
+	assertExists,
+} from 'https://deno.land/std@0.160.0/testing/asserts.ts'
+import { Downloader } from './services/downloader.ts'
 import {
-  assertSpyCall,
-  spy,
-} from "https://deno.land/std@0.207.0/testing/mock.ts";
-import osUtils from "./utils/os.ts";
-import { assert } from "https://deno.land/std@0.133.0/_util/assert.ts";
+	assertSpyCall,
+	spy,
+} from 'https://deno.land/std@0.207.0/testing/mock.ts'
+import osUtils from './utils/os.ts'
+import { assert } from 'https://deno.land/std@0.133.0/_util/assert.ts'
 
-const downloader = new Downloader();
+const downloader = new Downloader()
 
 const setupStackQL = async () => {
-  await downloader.setupStackQL();
-};
+	await downloader.setupStackQL()
+}
 
-Deno.test("StackQL CLI run query", async () => {
-  await setupStackQL();
+Deno.test('StackQL CLI run query', async () => {
+	await setupStackQL()
 
-  // Arrange
-  const stackQL = new StackQL();
-  await stackQL.initialize({ serverMode: false });
+	// Arrange
+	const stackQL = new StackQL()
+	await stackQL.initialize({ serverMode: false })
 
-  const pullQuery = "REGISTRY PULL github;";
-  const providerQuery = "SHOW PROVIDERS";
-  const githubTestQuery =
-    `SELECT id, name from github.repos.repos where org='stackql'`;
+	const pullQuery = 'REGISTRY PULL github;'
+	const providerQuery = 'SHOW PROVIDERS'
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql'`
 
-  // Act
-  await stackQL.runQuery(pullQuery);
-  const result = await stackQL.runQuery(providerQuery);
-  const githubResult = await stackQL.runQuery(githubTestQuery);
+	// Act
+	await stackQL.runQuery(pullQuery)
+	const result = await stackQL.runQuery(providerQuery)
+	const githubResult = await stackQL.runQuery(githubTestQuery)
 
-  // Assert
-  assertStringIncludes(result, "name");
-  assertStringIncludes(result, "version");
-  assertStringIncludes(result, "github");
-  assertStringIncludes(githubResult, "stackql");
-});
+	// Assert
+	assertStringIncludes(result, 'name')
+	assertStringIncludes(result, 'version')
+	assertStringIncludes(result, 'github')
+	assertStringIncludes(githubResult, 'stackql')
+})
 
-Deno.test("Set properties from configs", async () => {
-  await setupStackQL();
-  const runCliSpy = spy(osUtils, "runCommand");
-  const stackQL = new StackQL();
-  await stackQL.initialize({
-    serverMode: false,
-    maxResults: 100,
-    pageLimit: 10,
-    maxDepth: 5,
-    apiTimeout: 5000,
-  });
-  const githubTestQuery =
-    `SELECT id, name from github.repos.repos where org='stackql'`;
+Deno.test('Set properties from configs', async () => {
+	await setupStackQL()
+	const runCliSpy = spy(osUtils, 'runCommand')
+	const stackQL = new StackQL()
+	await stackQL.initialize({
+		serverMode: false,
+		maxResults: 100,
+		pageLimit: 10,
+		maxDepth: 5,
+		apiTimeout: 5000,
+	})
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql'`
 
-  await stackQL.runQuery(githubTestQuery);
+	await stackQL.runQuery(githubTestQuery)
 
-  const params = stackQL.getParams();
-  assertEquals(params.length, 8);
-  assertEquals(params, [
-    "--http.response.maxResults",
-    "100",
-    "--http.response.pageLimit",
-    "10",
-    "--indirect.depth.max",
-    "5",
-    "--apirequesttimeout",
-    "5000",
-  ]);
-  const binaryPath = stackQL.getBinaryPath();
-  assert(binaryPath);
-  assertSpyCall(runCliSpy, 0, {
-    args: [binaryPath, ["exec", githubTestQuery, ...params]],
-  });
-  runCliSpy.restore();
-});
+	const params = stackQL.getParams()
+	assertEquals(params.length, 8)
+	assertEquals(params, [
+		'--http.response.maxResults',
+		'100',
+		'--http.response.pageLimit',
+		'10',
+		'--indirect.depth.max',
+		'5',
+		'--apirequesttimeout',
+		'5000',
+	])
+	const binaryPath = stackQL.getBinaryPath()
+	assert(binaryPath)
+	assertSpyCall(runCliSpy, 0, {
+		args: [binaryPath, ['exec', githubTestQuery, ...params]],
+	})
+	runCliSpy.restore()
+})
 
-Deno.test("Set proxy properties from configs", async () => {
-  await setupStackQL();
-  const runCommandSpy = spy(osUtils, "runCommand");
-  const stackQL = new StackQL();
-  await stackQL.initialize({
-    serverMode: false,
-    proxyHost: "localhost",
-    proxyPort: 8080,
-    proxyUser: "user",
-    proxyPassword: "password",
-    proxyScheme: "https",
-  });
-  const githubTestQuery =
-    `SELECT id, name from github.repos.repos where org='stackql'`;
+Deno.test('Set proxy properties from configs', async () => {
+	await setupStackQL()
+	const runCommandSpy = spy(osUtils, 'runCommand')
+	const stackQL = new StackQL()
+	await stackQL.initialize({
+		serverMode: false,
+		proxyHost: 'localhost',
+		proxyPort: 8080,
+		proxyUser: 'user',
+		proxyPassword: 'password',
+		proxyScheme: 'https',
+	})
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql'`
 
-  await stackQL.runQuery(githubTestQuery);
+	await stackQL.runQuery(githubTestQuery)
 
-  const params = stackQL.getParams();
-  assertEquals(params, [
-    "--http.proxy.host",
-    "localhost",
-    "--http.proxy.port",
-    "8080",
-    "--http.proxy.user",
-    "user",
-    "--http.proxy.password",
-    "password",
-    "--http.proxy.scheme",
-    "https",
-  ]);
-  const binaryPath = stackQL.getBinaryPath();
-  assert(binaryPath);
-  assertSpyCall(runCommandSpy, 0, {
-    args: [binaryPath, ["exec", githubTestQuery, ...params]],
-  });
-  runCommandSpy.restore();
-});
+	const params = stackQL.getParams()
+	assertEquals(params, [
+		'--http.proxy.host',
+		'localhost',
+		'--http.proxy.port',
+		'8080',
+		'--http.proxy.user',
+		'user',
+		'--http.proxy.password',
+		'password',
+		'--http.proxy.scheme',
+		'https',
+	])
+	const binaryPath = stackQL.getBinaryPath()
+	assert(binaryPath)
+	assertSpyCall(runCommandSpy, 0, {
+		args: [binaryPath, ['exec', githubTestQuery, ...params]],
+	})
+	runCommandSpy.restore()
+})
 
-Deno.test("run query Output: json", async () => {
-  await setupStackQL();
-  const stackQL = new StackQL();
-  await stackQL.initialize({
-    serverMode: false,
-    outputFormat: "json",
-  });
-  const githubTestQuery =
-    `SELECT id, name from github.repos.repos where org='stackql'`;
+Deno.test('run query Output: json', async () => {
+	await setupStackQL()
+	const stackQL = new StackQL()
+	await stackQL.initialize({
+		serverMode: false,
+		outputFormat: 'json',
+	})
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql'`
 
-  const result = await stackQL.runQuery(githubTestQuery);
+	const result = await stackQL.runQuery(githubTestQuery)
 
-  const params = stackQL.getParams();
+	const params = stackQL.getParams()
 
-  assertEquals(params, [
-    "--output",
-    "json",
-  ]);
-  assert(isJsonString(result));
-  assert(!(await isCsvString(result)));
-});
+	assertEquals(params, [
+		'--output',
+		'json',
+	])
+	assert(isJsonString(result))
+	assert(!(await isCsvString(result)))
+})
 
-Deno.test("run query Output: csv", async () => {
-  await setupStackQL();
-  const stackQL = new StackQL();
-  await stackQL.initialize({
-    serverMode: false,
-    outputFormat: "csv",
-  });
-  const githubTestQuery =
-    `SELECT id, name from github.repos.repos where org='stackql'`;
+Deno.test('run query Output: csv', async () => {
+	await setupStackQL()
+	const stackQL = new StackQL()
+	await stackQL.initialize({
+		serverMode: false,
+		outputFormat: 'csv',
+	})
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql'`
 
-  const result = await stackQL.runQuery(githubTestQuery);
-  const params = stackQL.getParams();
+	const result = await stackQL.runQuery(githubTestQuery)
+	const params = stackQL.getParams()
 
-  assertEquals(params, [
-    "--output",
-    "csv",
-  ]);
-  assert(!isJsonString(result));
-  assert(await isCsvString(result));
-});
+	assertEquals(params, [
+		'--output',
+		'csv',
+	])
+	assert(!isJsonString(result))
+	assert(await isCsvString(result))
+})
 
-Deno.test("StackQL runServerQuery", async () => {
-  const { closeProcess } = await startStackQLServer();
-  const stackQL = new StackQL();
+Deno.test('StackQL runServerQuery', async () => {
+	const { closeProcess } = await startStackQLServer()
+	const stackQL = new StackQL()
 
-  try {
-    // Arrange
-    await stackQL.initialize({
-      serverMode: true,
-      connectionString: "postgres://postgres:password@localhost:5444/postgres",
-    });
-    const pullQuery = "REGISTRY PULL github;";
-    const testQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
+	try {
+		// Arrange
+		await stackQL.initialize({
+			serverMode: true,
+			connectionString:
+				'postgres://postgres:password@localhost:5444/postgres',
+		})
+		const pullQuery = 'REGISTRY PULL github;'
+		const testQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';' // Replace with a valid query for your context
 
-    // Act
-    await stackQL.runServerQuery(pullQuery);
-    const results = await stackQL.runServerQuery(testQuery);
-    assertExists(results);
-    assertEquals(results.length, 1);
-    const result = results[0] as {
-      name: string;
-    };
-    assertEquals(result.name, "repos");
+		// Act
+		await stackQL.runServerQuery(pullQuery)
+		const results = await stackQL.runServerQuery(testQuery)
+		assertExists(results)
+		assertEquals(results.length, 1)
+		const result = results[0] as {
+			name: string
+		}
+		assertEquals(result.name, 'repos')
 
-    // Assert
-  } finally {
-    // Cleanup
-    await closeProcess();
-    await stackQL.closeConnection();
-  }
-});
+		// Assert
+	} finally {
+		// Cleanup
+		await closeProcess()
+		await stackQL.closeConnection()
+	}
+})
 
-Deno.test("getVersion", async () => {
-  await setupStackQL();
-  const stackQL = new StackQL();
-  await stackQL.initialize({ serverMode: false });
-  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
-  const shaRegex = /^[a-f0-9]{7}$/;
+Deno.test('getVersion', async () => {
+	await setupStackQL()
+	const stackQL = new StackQL()
+	await stackQL.initialize({ serverMode: false })
+	const versionRegex = /^v?(\d+(?:\.\d+)*)$/
+	const shaRegex = /^[a-f0-9]{7}$/
 
-  const { version, sha } = await stackQL.getVersion();
+	const { version, sha } = await stackQL.getVersion()
 
-  assert(version);
-  assert(sha);
-  assert(versionRegex.test(version));
-  assert(shaRegex.test(sha));
-});
+	assert(version)
+	assert(sha)
+	assert(versionRegex.test(version))
+	assert(shaRegex.test(sha))
+})
 
-Deno.test("getVersion when version and sha are undefined", async () => {
-  await setupStackQL();
-  const stackQL = new StackQL();
-  await stackQL.initialize({ serverMode: false });
-  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
-  const shaRegex = /^[a-f0-9]{7}$/;
-  // deno-lint-ignore no-explicit-any
-  (stackQL as any).version = undefined;
-  // deno-lint-ignore no-explicit-any
-  (stackQL as any).sha = undefined;
-  // deno-lint-ignore no-explicit-any
-  assert((stackQL as any).version === undefined);
-  // deno-lint-ignore no-explicit-any
-  assert((stackQL as any).sha === undefined);
+Deno.test('getVersion when version and sha are undefined', async () => {
+	await setupStackQL()
+	const stackQL = new StackQL()
+	await stackQL.initialize({ serverMode: false })
+	const versionRegex = /^v?(\d+(?:\.\d+)*)$/
+	const shaRegex = /^[a-f0-9]{7}$/ // deno-lint-ignore no-explicit-any
+	;(stackQL as any).version = undefined // deno-lint-ignore no-explicit-any
+	;(stackQL as any).sha = undefined
+	// deno-lint-ignore no-explicit-any
+	assert((stackQL as any).version === undefined)
+	// deno-lint-ignore no-explicit-any
+	assert((stackQL as any).sha === undefined)
 
-  const { version, sha } = await stackQL.getVersion();
+	const { version, sha } = await stackQL.getVersion()
 
-  assert(version);
-  assert(sha);
-  assert(versionRegex.test(version));
-  assert(shaRegex.test(sha));
-});
+	assert(version)
+	assert(sha)
+	assert(versionRegex.test(version))
+	assert(shaRegex.test(sha))
+})
 
-Deno.test("upgrade stackql", async () => {
-  await setupStackQL();
-  const stackQL = new StackQL();
-  await stackQL.initialize({ serverMode: false });
-  // deno-lint-ignore no-explicit-any
-  (stackQL as any).version = undefined;
-  // deno-lint-ignore no-explicit-any
-  (stackQL as any).sha = undefined;
-  const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
-  const shaRegex = /^[a-f0-9]{7}$/;
-  // deno-lint-ignore no-explicit-any
-  assert((stackQL as any).version === undefined);
-  // deno-lint-ignore no-explicit-any
-  assert((stackQL as any).sha === undefined);
+Deno.test('upgrade stackql', async () => {
+	await setupStackQL()
+	const stackQL = new StackQL()
+	await stackQL.initialize({ serverMode: false }) // deno-lint-ignore no-explicit-any
+	;(stackQL as any).version = undefined // deno-lint-ignore no-explicit-any
+	;(stackQL as any).sha = undefined
+	const versionRegex = /^v?(\d+(?:\.\d+)*)$/
+	const shaRegex = /^[a-f0-9]{7}$/
+	// deno-lint-ignore no-explicit-any
+	assert((stackQL as any).version === undefined)
+	// deno-lint-ignore no-explicit-any
+	assert((stackQL as any).sha === undefined)
 
-  const { version, sha } = await stackQL.upgrade();
+	const { version, sha } = await stackQL.upgrade()
 
-  assert(version);
-  assert(sha);
-  assert(versionRegex.test(version));
-  assert(shaRegex.test(sha));
-});
+	assert(version)
+	assert(sha)
+	assert(versionRegex.test(version))
+	assert(shaRegex.test(sha))
+})
