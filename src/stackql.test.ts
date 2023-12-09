@@ -1,10 +1,6 @@
 import { assertStringIncludes } from 'https://deno.land/std@0.206.0/assert/mod.ts';
 import { StackQL } from './stackql.ts';
-import {
-	isCsvString,
-	isJsonString,
-	startStackQLServer,
-} from '../testing/utils.ts';
+import { isCsvString, startStackQLServer } from '../testing/utils.ts';
 import {
 	assertEquals,
 	assertExists,
