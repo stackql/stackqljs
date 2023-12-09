@@ -13,7 +13,7 @@ const fileExists = (path?: string) => {
 	}
 }
 
-const chomod = async (path: string, mode: number) => {
+const chmod = async (path: string, mode: number) => {
 	if (Deno.build.os !== 'windows') {
 		await Deno.chmod(path, mode)
 	}
@@ -41,7 +41,7 @@ const runCommand = async (path: string, args: string[]) => {
 
 const osUtils = {
 	fileExists,
-	chomod,
+	chmod,
 	runCommand,
 }
 
