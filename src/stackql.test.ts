@@ -23,7 +23,7 @@ const setupStackQL = async () => {
 	await downloader.setupStackQL()
 }
 
-Deno.test('StackQL CLI run query', async () => {
+Deno.test('Query: Execute Registry Pull and Show Providers Queries', async () => {
 	await setupStackQL()
 
 	// Arrange
@@ -36,9 +36,9 @@ Deno.test('StackQL CLI run query', async () => {
 		`SELECT id, name from github.repos.repos where org='stackql'`
 
 	// Act
-	await stackQL.runQuery(pullQuery)
-	const result = await stackQL.runQuery(providerQuery)
-	const githubResult = await stackQL.runQuery(githubTestQuery)
+	await stackQL.execute(pullQuery)
+	const result = await stackQL.execute(providerQuery)
+	const githubResult = await stackQL.execute(githubTestQuery)
 
 	// Assert
 	assertStringIncludes(result, 'name')
@@ -47,7 +47,7 @@ Deno.test('StackQL CLI run query', async () => {
 	assertStringIncludes(githubResult, 'stackql')
 })
 
-Deno.test('Set properties from configs', async () => {
+Deno.test('Configuration: Apply Settings from Configs', async () => {
 	await setupStackQL()
 	const runCliSpy = spy(osUtils, 'runCommand')
 	const stackQL = new StackQL()
@@ -61,7 +61,7 @@ Deno.test('Set properties from configs', async () => {
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`
 
-	await stackQL.runQuery(githubTestQuery)
+	await stackQL.execute(githubTestQuery)
 
 	const params = stackQL.getParams()
 	assertEquals(params.length, 8)
@@ -83,7 +83,7 @@ Deno.test('Set properties from configs', async () => {
 	runCliSpy.restore()
 })
 
-Deno.test('Set proxy properties from configs', async () => {
+Deno.test('Configuration: Apply Proxy Settings from Configs', async () => {
 	await setupStackQL()
 	const runCommandSpy = spy(osUtils, 'runCommand')
 	const stackQL = new StackQL()
@@ -98,7 +98,7 @@ Deno.test('Set proxy properties from configs', async () => {
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`
 
-	await stackQL.runQuery(githubTestQuery)
+	await stackQL.execute(githubTestQuery)
 
 	const params = stackQL.getParams()
 	assertEquals(params, [
@@ -121,7 +121,7 @@ Deno.test('Set proxy properties from configs', async () => {
 	runCommandSpy.restore()
 })
 
-Deno.test('run query Output: json', async () => {
+Deno.test('Query: json output', async () => {
 	await setupStackQL()
 	const stackQL = new StackQL()
 	await stackQL.initialize({
@@ -131,7 +131,7 @@ Deno.test('run query Output: json', async () => {
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`
 
-	const result = await stackQL.runQuery(githubTestQuery)
+	const result = await stackQL.execute(githubTestQuery)
 
 	const params = stackQL.getParams()
 
@@ -143,7 +143,7 @@ Deno.test('run query Output: json', async () => {
 	assert(!(await isCsvString(result)))
 })
 
-Deno.test('run query Output: csv', async () => {
+Deno.test('Query: csv output', async () => {
 	await setupStackQL()
 	const stackQL = new StackQL()
 	await stackQL.initialize({
@@ -153,7 +153,7 @@ Deno.test('run query Output: csv', async () => {
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`
 
-	const result = await stackQL.runQuery(githubTestQuery)
+	const result = await stackQL.execute(githubTestQuery)
 	const params = stackQL.getParams()
 
 	assertEquals(params, [
@@ -164,7 +164,7 @@ Deno.test('run query Output: csv', async () => {
 	assert(await isCsvString(result))
 })
 
-Deno.test('StackQL runServerQuery', async () => {
+Deno.test('Server mode: Query', async () => {
 	const { closeProcess } = await startStackQLServer()
 	const stackQL = new StackQL()
 
@@ -179,8 +179,8 @@ Deno.test('StackQL runServerQuery', async () => {
 		const testQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';' // Replace with a valid query for your context
 
 		// Act
-		await stackQL.runServerQuery(pullQuery)
-		const results = await stackQL.runServerQuery(testQuery)
+		await stackQL.execute(pullQuery)
+		const results = await stackQL.execute(testQuery)
 		assertExists(results)
 		assertEquals(results.length, 1)
 		const result = results[0] as {
@@ -196,7 +196,7 @@ Deno.test('StackQL runServerQuery', async () => {
 	}
 })
 
-Deno.test('getVersion', async () => {
+Deno.test('GetVersion', async () => {
 	await setupStackQL()
 	const stackQL = new StackQL()
 	await stackQL.initialize({ serverMode: false })
@@ -211,7 +211,7 @@ Deno.test('getVersion', async () => {
 	assert(shaRegex.test(sha))
 })
 
-Deno.test('getVersion when version and sha are undefined', async () => {
+Deno.test('GetVersion: getVersion when version and sha are undefined', async () => {
 	await setupStackQL()
 	const stackQL = new StackQL()
 	await stackQL.initialize({ serverMode: false })
@@ -232,7 +232,7 @@ Deno.test('getVersion when version and sha are undefined', async () => {
 	assert(shaRegex.test(sha))
 })
 
-Deno.test('upgrade stackql', async () => {
+Deno.test('Upgrade: upgrade stackql', async () => {
 	await setupStackQL()
 	const stackQL = new StackQL()
 	await stackQL.initialize({ serverMode: false }) // deno-lint-ignore no-explicit-any

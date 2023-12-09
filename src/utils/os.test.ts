@@ -6,7 +6,6 @@ import {
 	assertThrows,
 } from 'https://deno.land/std@0.160.0/testing/asserts.ts'
 import osUtils from './os.ts'
-import { join } from 'https://deno.land/std@0.133.0/path/win32.ts'
 import { stub } from 'https://deno.land/std@0.207.0/testing/mock.ts'
 
 Deno.test('osUtils.runCommand: Test Successful Execution', async () => {

@@ -48,11 +48,34 @@ export class StackQL {
 		return { version: this.version, sha: this.sha }
 	}
 
-	async execute(query: string) {
+	/**
+	 * Executes a query using the StackQL instance and returns the output.
+	 *
+	 * Depending on the `serverMode` attribute of the instance, this method
+	 * either runs the query against the StackQL server or executes it locally.
+	 * The method is designed to return the result in a suitable format for TypeScript
+	 * environments, which could be an object or a string.
+	 *
+	 * @param query - The StackQL query string to be executed.
+	 * @returns The output result of the query. The type of the result can vary
+	 *          depending on the implementation and the output format specified.
+	 *
+	 * Example:
+	 * ```
+	 * const stackql = new StackQL();
+	 * const stackqlQuery = `SELECT ... FROM ... WHERE ...`;
+	 * const result = await stackql.execute(stackqlQuery);
+	 * ```
+	 */
+	async execute(query: string): Promise<any> {
 		if (this.serverMode) {
+			// Execute the query using the server
 			const result = await this.runServerQuery(query)
+			return result
+		} else {
+			// Execute the query locally
+			return await this.runQuery(query)
 		}
-		return await this.runQuery(query)
 	}
 
 	private async updateVersion() {
@@ -179,7 +202,7 @@ export class StackQL {
 	 * @param query The StackQL query
 	 * @returns The result of the query
 	 */
-	public async runQuery(query: string) {
+	private async runQuery(query: string) {
 		assertExists(this.binaryPath)
 		const args = ['exec', query].concat(this.params)
 		try {
@@ -195,6 +218,12 @@ export class StackQL {
 	private async queryObjectFormat(query: string) {
 		assertExists(this.connection)
 		const pgResult = await this.connection.queryObject(query)
+		return pgResult.rows
+	}
+
+	private async queryCSVFormat(query: string) {
+		assertExists(this.connection)
+		const pgResult = await this.connection.queryArray(query)
 		return pgResult.rows
 	}
 
@@ -217,10 +246,14 @@ export class StackQL {
 	 * @param query The StackQL query
 	 * @returns The result of the query
 	 */
-	public async runServerQuery(query: string) {
+	private async runServerQuery(query: string) {
 		try {
 			if (this.outputFormat === 'json') {
 				const result = await this.queryObjectFormat(query)
+				return result
+			}
+			if (this.outputFormat === 'csv') {
+				const result = await this.queryCSVFormat(query)
 				return result
 			}
 		} catch (error) {
