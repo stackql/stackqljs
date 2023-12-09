@@ -5,7 +5,7 @@
 
 # stackqljs
 
-[**StackQL**](https://github.com/stackql/stackql) client library for Deno and Node.js that exposes all features StackQL.
+[__StackQL__](https://github.com/stackql/stackql) client library for Deno and Node.js that exposes all features StackQL.  
 
 ## Requirements
 
@@ -14,18 +14,8 @@
 - No dependencies
 - Works in server mode (as a pg wire protocol server client) as well as local mode where it is a wrapper for the `stackql` binary for the target platform
 - Exposes methods analagous to [`pystackql`](https://pystackql.readthedocs.io/en/latest/), including:
-  - `connect` - connect to a StackQL server - if in server mode
-  - `upgrade` - if in local mode, upgrade the local stackql binary from the latest release
-  - `execute` - execute a query returns an array of rows (objects)
-  - `executeStmt` - executes a statement and returns a string (like `REGISTRY PULL` or `INSERT ...`)
-  - `executeQueriesAsync` - executes a list of queries and returns an array of rows (objects) - queries need to return the same columns/schema
-
-## Test
-
-### Requirement
-
-- To run the tests locally, [install StackQL](https://stackql.io/docs/installing-stackql) first.
-
-```
-deno task test <optional: test file path>
-```
+    - `connect` - connect to a StackQL server - if in server mode
+    - `upgrade` - if in local mode, upgrade the local stackql binary from the latest release
+    - `execute` - execute a query returns an array of rows (objects)
+    - `executeStmt` - executes a statement and returns a string (like `REGISTRY PULL` or `INSERT ...`)
+    - `executeQueriesAsync` - executes a list of queries and returns an array of rows (objects) - queries need to return the same columns/schema
