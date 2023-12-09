@@ -87,15 +87,54 @@ export class StackQL {
 	 * const result = await stackql.execute(stackqlQuery);
 	 * ```
 	 */
-	async execute(query: string): Promise<string> {
+	async execute(query: string): Promise<string | unknown[]> {
 		if (this.serverMode) {
 			// Execute the query using the server
 			const result = await this.runServerQuery(query);
 			return result || '';
-		} else {
-			// Execute the query locally
-			return await this.runQuery(query);
 		}
+		// Execute the query locally
+		const result = await this.runQuery(query);
+
+		if (this.outputFormat === 'json') {
+			try {
+				return JSON.parse(result) as unknown[];
+			} catch (error) {
+				return result;
+			}
+		}
+
+		return result;
+	}
+
+	async executeStatement(statement: string): Promise<string> {
+		if (this.serverMode) {
+			const result = await this.runServerQuery(statement);
+			return result || '';
+		}
+		const result = await this.runQuery(statement);
+		return result;
+	}
+
+	async executeQueriesAsync(queries: string[]): Promise<string[]> {
+		if (this.serverMode) {
+			throw new Error('Async queries are not supported in server mode');
+		}
+		const results = await Promise.all(
+			queries.map(async (query) => await this.runQuery(query)),
+		);
+
+		// Parse each result as JSON and return the combined array
+		return results.map((result) => {
+			try {
+				if (this.outputFormat === 'json') {
+					return JSON.parse(result);
+				}
+				return result;
+			} catch (error) {
+				return result;
+			}
+		});
 	}
 
 	/**
@@ -186,16 +225,21 @@ export class StackQL {
 			this.setProxyProperties(config);
 		}
 
+		this.setOutputFormat(config);
+	}
+
+	private setOutputFormat(config: StackQLConfig): void {
 		if (config.outputFormat !== undefined) {
 			if (!['csv', 'json'].includes(config.outputFormat)) {
 				throw new Error(
 					`Invalid outputFormat. Expected one of ['csv', 'json'], got ${config.outputFormat}.`,
 				);
 			}
-			this.params.push('--output');
-			this.params.push(config.outputFormat);
 			this.outputFormat = config.outputFormat;
 		}
+		console.log(this.outputFormat);
+		this.params.push('--output');
+		this.params.push(this.outputFormat);
 	}
 
 	/**
