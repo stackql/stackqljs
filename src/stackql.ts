@@ -32,6 +32,25 @@ export class StackQL {
 	constructor() {
 	}
 
+	/**
+	 * Initialize the `stackql` executable and properties from the provided configuration object
+	 * @param config The configuration object
+	 * @returns The binary path of the `stackql` executable if `server_mode` is `false`, otherwise `undefined`
+	 */
+	public async initialize(config: StackQLConfig) {
+		this.binaryPath = config.binaryPath
+		this.serverMode = config.serverMode || false
+		if (this.serverMode) {
+			await this.setupConnection(config.connectionString)
+			return
+		}
+		if (this.binaryExist()) {
+			return
+		}
+		this.binaryPath = await this.downloader.setupStackQL()
+		this.setProperties(config)
+	}
+
 	getParams() {
 		return this.params
 	}
@@ -78,6 +97,16 @@ export class StackQL {
 		}
 	}
 
+	/**
+	 * Upgrade the `stackql` executable to the latest version
+	 * @returns The version number of the `stackql` executable (not supported in `server_mode`)
+	 */
+	async upgrade() {
+		this.binaryPath = await this.downloader.upgradeStackQL()
+		await this.updateVersion()
+		return this.getVersion()
+	}
+
 	private async updateVersion() {
 		if (!this.binaryPath) {
 			throw new Error('Binary path not found')
@@ -94,35 +123,6 @@ export class StackQL {
 			this.version = version
 			this.sha = sha
 		}
-	}
-
-	/**
-	 * Upgrade the `stackql` executable to the latest version
-	 * @returns The version number of the `stackql` executable (not supported in `server_mode`)
-	 */
-	async upgrade() {
-		this.binaryPath = await this.downloader.upgradeStackQL()
-		await this.updateVersion()
-		return this.getVersion()
-	}
-
-	/**
-	 * Initialize the `stackql` executable
-	 * @param config The configuration object
-	 * @returns The binary path of the `stackql` executable if `server_mode` is `false`, otherwise `undefined`
-	 */
-	public async initialize(config: StackQLConfig) {
-		this.binaryPath = config.binaryPath
-		this.serverMode = config.serverMode || false
-		if (this.serverMode) {
-			await this.setupConnection(config.connectionString)
-			return
-		}
-		if (this.binaryExist()) {
-			return
-		}
-		this.binaryPath = await this.downloader.setupStackQL()
-		this.setProperties(config)
 	}
 
 	private binaryExist() {
@@ -233,7 +233,7 @@ export class StackQL {
 	}
 
 	/**
-	 * Close the connection to the stackql server
+	 * Close the connection to the stackql server, only available in server mode
 	 */
 	public async closeConnection() {
 		if (this.connection) {
