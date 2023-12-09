@@ -1,3 +1,5 @@
-import { StackQL } from "./src/stackql.ts";
+import { bold } from "./deps.ts";
 
-export { StackQL };
+export function getHelloWorld(): string {
+    return bold("Hello World");
+  }
