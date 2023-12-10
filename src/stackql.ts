@@ -116,7 +116,9 @@ export class StackQL {
 		return result;
 	}
 
-	async executeQueriesAsync(queries: string[]): Promise<string[]> {
+	async executeQueriesAsync(
+		queries: string[],
+	): Promise<string[] | unknown[][]> {
 		if (this.serverMode) {
 			throw new Error('Async queries are not supported in server mode');
 		}

@@ -225,6 +225,59 @@ Deno.test('Server mode: Query', async () => {
 	}
 });
 
+Deno.test('executeQueriesAsync: object format', async () => {
+	await setupStackQL();
+	const stackQL = new StackQL();
+	await stackQL.initialize({ serverMode: false });
+
+	const pullQuery = 'REGISTRY PULL github;';
+	const providerQuery = 'SHOW PROVIDERS';
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql' and name='stackql'`;
+
+	const results = await stackQL.executeQueriesAsync([
+		pullQuery,
+		providerQuery,
+		githubTestQuery,
+	]);
+
+	assert(Array.isArray(results));
+	assertEquals(results.length, 3);
+
+	const githubResult = results[2] as unknown[];
+	const githubResultObj = githubResult[0] as {
+		id: string;
+		name: string;
+	};
+	assertEquals(githubResultObj.name, 'stackql');
+});
+
+Deno.test('executeQueriesAsync: csv format', async () => {
+	await setupStackQL();
+	const stackQL = new StackQL();
+	await stackQL.initialize({
+		serverMode: false,
+		outputFormat: 'csv',
+	});
+
+	const pullQuery = 'REGISTRY PULL github;';
+	const providerQuery = 'SHOW PROVIDERS';
+	const githubTestQuery =
+		`SELECT id, name from github.repos.repos where org='stackql' and name='stackql'`;
+
+	const results = await stackQL.executeQueriesAsync([
+		pullQuery,
+		providerQuery,
+		githubTestQuery,
+	]);
+
+	assert(Array.isArray(results));
+	assertEquals(results.length, 3);
+
+	const githubResult = results[2] as string;
+	assert(await isCsvString(githubResult));
+});
+
 Deno.test('GetVersion', async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
