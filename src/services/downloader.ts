@@ -125,7 +125,7 @@ export class Downloader {
 
 	private async setExecutable(binaryPath: string) {
 		const allowExecOctal = 0o755
-		await osUtils.chomod(binaryPath, allowExecOctal)
+		await osUtils.chmod(binaryPath, allowExecOctal)
 	}
 
 	private async downloadAndInstallStackQL({
