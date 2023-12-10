@@ -298,10 +298,10 @@ Deno.test('GetVersion: getVersion when version and sha are undefined', async () 
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false });
 	const versionRegex = /^v?(\d+(?:\.\d+)*)$/;
-	const shaRegex = /^[a-f0-9]{7}$/ // deno-lint-ignore no-explicit-any
-	;
-	(stackQL as any).version = undefined // deno-lint-ignore no-explicit-any
-	;
+	const shaRegex = /^[a-f0-9]{7}$/;
+	// deno-lint-ignore no-explicit-any
+	(stackQL as any).version = undefined;
+	// deno-lint-ignore no-explicit-any
 	(stackQL as any).sha = undefined;
 	// deno-lint-ignore no-explicit-any
 	assert((stackQL as any).version === undefined);
