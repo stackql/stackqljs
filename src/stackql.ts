@@ -1,8 +1,8 @@
-import { assertExists } from 'https://deno.land/std@0.206.0/assert/assert_exists.ts';
+import { assertExists } from '../deps.ts';
 import { Downloader } from './services/downloader.ts';
 import osUtils from './utils/os.ts';
 import { Server } from './services/server.ts';
-import { Client } from 'https://deno.land/x/postgres@v0.17.0/client.ts';
+import { Client } from '../deps.ts';
 
 export interface StackQLConfig {
 	binaryPath?: string;

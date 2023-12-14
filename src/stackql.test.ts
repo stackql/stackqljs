@@ -1,17 +1,16 @@
-import { assertStringIncludes } from 'https://deno.land/std@0.206.0/assert/mod.ts';
-import { StackQL } from './stackql.ts';
-import { isCsvString, startStackQLServer } from '../testing/utils.ts';
 import {
+	assert,
 	assertEquals,
 	assertExists,
-} from 'https://deno.land/std@0.160.0/testing/asserts.ts';
-import { Downloader } from './services/downloader.ts';
-import {
 	assertSpyCall,
+	assertStringIncludes,
 	spy,
-} from 'https://deno.land/std@0.207.0/testing/mock.ts';
+} from '../dev_deps.ts';
+
+import { StackQL } from './stackql.ts';
+import { isCsvString, startStackQLServer } from '../testing/utils.ts';
+import { Downloader } from './services/downloader.ts';
 import osUtils from './utils/os.ts';
-import { assert } from 'https://deno.land/std@0.133.0/_util/assert.ts';
 
 const downloader = new Downloader();
 
