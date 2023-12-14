@@ -1,15 +1,15 @@
-import { join } from 'https://deno.land/std@0.133.0/path/mod.ts'
-import { SupportedOs } from '../types/platforms.ts'
-import { darwinUnpack, unzip } from './unpacker.ts'
-import osUtils from '../utils/os.ts'
+import { join } from '../../deps.ts';
+import { SupportedOs } from '../types/platforms.ts';
+import { darwinUnpack, unzip } from './unpacker.ts';
+import osUtils from '../utils/os.ts';
 
 export class Downloader {
-	private os: string
-	private arch: string
-	private urlMap: Record<string, string>
+	private os: string;
+	private arch: string;
+	private urlMap: Record<string, string>;
 	constructor() {
-		this.os = Deno.build.os // 'linux', 'darwin', or 'windows'
-		this.arch = Deno.build.arch // 'x86_64', 'arm64', etc.
+		this.os = Deno.build.os; // 'linux', 'darwin', or 'windows'
+		this.arch = Deno.build.arch; // 'x86_64', 'arm64', etc.
 
 		this.urlMap = {
 			[SupportedOs.Linux]:
@@ -19,35 +19,38 @@ export class Downloader {
 			[SupportedOs.Darwin]:
 				'https://storage.googleapis.com/stackql-public-releases/latest/stackql_darwin_multiarch.pkg',
 			// Additional OS-architecture combinations can be added here
-		}
+		};
 	}
 
 	private async downloadFile(url: string, downloadDir: string) {
-		const res = await fetch(url)
+		const res = await fetch(url);
 		// create dir if not exists
 
-		const file = await Deno.open(downloadDir, { create: true, write: true })
+		const file = await Deno.open(downloadDir, {
+			create: true,
+			write: true,
+		});
 
 		try {
 			await res.body?.pipeTo(file.writable).finally(
 				() => file.close(), //TODO: fix bad resource id when closing file
-			)
+			);
 		} catch (error) {
-			console.error(`ERROR: [downloadFile] ${error.message}`)
+			console.error(`ERROR: [downloadFile] ${error.message}`);
 		}
 
-		console.log('Closed file')
+		console.log('Closed file');
 	}
 
 	private getUrl(): string {
-		const key = `${this.os}`
-		const url = this.urlMap[key]
+		const key = `${this.os}`;
+		const url = this.urlMap[key];
 
 		if (!url) {
-			throw new Error(`Unsupported OS type: ${this.os}`)
+			throw new Error(`Unsupported OS type: ${this.os}`);
 		}
 
-		return url
+		return url;
 	}
 
 	/**
@@ -59,28 +62,28 @@ export class Downloader {
 			[SupportedOs.Windows]: 'stackql.exe',
 			[SupportedOs.Darwin]: 'stackql/Payload/stackql',
 			[SupportedOs.Linux]: 'stackql', // Default case for Linux and other platforms
-		}
-		const os = Deno.build.os.toLowerCase()
+		};
+		const os = Deno.build.os.toLowerCase();
 
 		if (!Object.values(SupportedOs).includes(os as SupportedOs)) {
-			throw new Error(`Unsupported OS type: ${os}`)
+			throw new Error(`Unsupported OS type: ${os}`);
 		}
 
-		const binaryOs = os as SupportedOs
-		return binaryMap[binaryOs]
+		const binaryOs = os as SupportedOs;
+		return binaryMap[binaryOs];
 	}
 
 	private async createDownloadDir(downloadDir: string) {
 		try {
-			const stat = await Deno.stat(downloadDir)
+			const stat = await Deno.stat(downloadDir);
 			if (!stat.isDirectory) {
-				await Deno.mkdir(downloadDir, { recursive: true })
+				await Deno.mkdir(downloadDir, { recursive: true });
 			}
 		} catch (error) {
 			if (error instanceof Deno.errors.NotFound) {
-				await Deno.mkdir(downloadDir, { recursive: true })
+				await Deno.mkdir(downloadDir, { recursive: true });
 			} else {
-				throw error
+				throw error;
 			}
 		}
 	}
@@ -89,101 +92,101 @@ export class Downloader {
 	 * @returns download dir
 	 */
 	private getDownloadDir(): string {
-		const projectDir = Deno.cwd()
+		const projectDir = Deno.cwd();
 
 		if (!projectDir) {
-			throw new Error('Unable to determine the project directory.')
+			throw new Error('Unable to determine the project directory.');
 		}
 
-		const downloadDir = join(projectDir, '.stackql')
+		const downloadDir = join(projectDir, '.stackql');
 
-		return downloadDir
+		return downloadDir;
 	}
 
 	private binaryExists(binaryName: string, downloadDir: string): boolean {
-		const binPath = join(downloadDir, binaryName)
+		const binPath = join(downloadDir, binaryName);
 		try {
-			Deno.statSync(binPath)
-			return true
+			Deno.statSync(binPath);
+			return true;
 		} catch (error) {
 			if (error instanceof Deno.errors.NotFound) {
-				return false
+				return false;
 			}
-			throw error
+			throw error;
 		}
 	}
 	private async installStackQL(downloadDir: string) {
-		const url = this.getUrl()
+		const url = this.getUrl();
 
-		const archiveFileName = `${downloadDir}/${url.split('/').pop()}`
-		await this.downloadFile(url, archiveFileName)
+		const archiveFileName = `${downloadDir}/${url.split('/').pop()}`;
+		await this.downloadFile(url, archiveFileName);
 
-		console.log('Unpacking stackql binary')
-		const unpacker = Deno.build.os === 'darwin' ? darwinUnpack : unzip
-		await unpacker({ downloadDir, archiveFileName })
+		console.log('Unpacking stackql binary');
+		const unpacker = Deno.build.os === 'darwin' ? darwinUnpack : unzip;
+		await unpacker({ downloadDir, archiveFileName });
 	}
 
 	private async setExecutable(binaryPath: string) {
-		const allowExecOctal = 0o755
-		await osUtils.chmod(binaryPath, allowExecOctal)
+		const allowExecOctal = 0o755;
+		await osUtils.chmod(binaryPath, allowExecOctal);
 	}
 
 	private async downloadAndInstallStackQL({
 		downloadDir,
 		binaryName,
 	}: {
-		downloadDir: string
-		binaryName: string
+		downloadDir: string;
+		binaryName: string;
 	}) {
-		const binaryPath = join(downloadDir, binaryName)
-		await this.installStackQL(downloadDir)
-		await this.setExecutable(binaryPath)
-		return binaryPath
+		const binaryPath = join(downloadDir, binaryName);
+		await this.installStackQL(downloadDir);
+		await this.setExecutable(binaryPath);
+		return binaryPath;
 	}
 	/**
 	 * Setup stackql binary, check if binary exists, if not download it
 	 */
 	public async setupStackQL() {
 		try {
-			const binaryName = this.getBinaryName()
-			const downloadDir = this.getDownloadDir()
-			await this.createDownloadDir(downloadDir)
+			const binaryName = this.getBinaryName();
+			const downloadDir = this.getDownloadDir();
+			await this.createDownloadDir(downloadDir);
 
-			let binaryPath = join(downloadDir, binaryName)
+			let binaryPath = join(downloadDir, binaryName);
 
 			if (this.binaryExists(binaryName, downloadDir)) {
-				await this.setExecutable(binaryPath)
-				return binaryPath
+				await this.setExecutable(binaryPath);
+				return binaryPath;
 			}
 
 			binaryPath = await this.downloadAndInstallStackQL({
 				downloadDir,
 				binaryName,
-			})
-			return binaryPath
+			});
+			return binaryPath;
 		} catch (error) {
-			console.error(`ERROR: [setup] ${error.message}`)
-			Deno.exit(1)
+			console.error(`ERROR: [setup] ${error.message}`);
+			Deno.exit(1);
 		}
 	}
 
 	private async removeStackQL() {
-		const downloadDir = this.getDownloadDir()
-		await Deno.remove(join(downloadDir, '/'), { recursive: true })
-		console.log('stackql download dir removed')
+		const downloadDir = this.getDownloadDir();
+		await Deno.remove(join(downloadDir, '/'), { recursive: true });
+		console.log('stackql download dir removed');
 	}
 
 	public async upgradeStackQL() {
 		if (Deno.build.os === 'darwin') {
-			await this.removeStackQL()
+			await this.removeStackQL();
 		}
-		const binaryName = this.getBinaryName()
-		const downloadDir = this.getDownloadDir()
-		await this.createDownloadDir(downloadDir)
+		const binaryName = this.getBinaryName();
+		const downloadDir = this.getDownloadDir();
+		await this.createDownloadDir(downloadDir);
 		const binaryPath = await this.downloadAndInstallStackQL({
 			downloadDir,
 			binaryName,
-		})
-		return binaryPath
+		});
+		return binaryPath;
 	}
 }
