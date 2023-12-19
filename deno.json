@@ -1,6 +1,6 @@
 {
   "lint": {
-    "include": ["src/"],
+    "include": ["src/", "scripts/"],
     "exclude": ["src/testing/", "src/**/*.test.ts", "src/*test.ts/"],
     "rules": {
       "tags": ["recommended"],
@@ -15,7 +15,7 @@
     "semiColons": true,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "include": ["src/"],
+    "include": ["src/", "scripts/"],
     "exclude": ["*.md"]
   },
   "tasks": {
