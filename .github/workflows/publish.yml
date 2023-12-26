@@ -30,7 +30,7 @@ jobs:
             echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          elif [ "${{ github.ref }}" = "refs/heads/dev/node-js-support" ]; then
+          elif [ "${{ github.ref }}" = "refs/heads/dev/nodejs-support" ]; then
             echo "VERSION=0.0.0-test" >> $GITHUB_ENV
           fi
 
