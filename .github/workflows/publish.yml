@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - dev/node-js-support
+      - dev/nodejs-support
   workflow_dispatch:
     inputs:
       version:
