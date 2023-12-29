@@ -1,7 +1,7 @@
 {
   "lint": {
     "include": ["src/", "scripts/"],
-    "exclude": ["src/testing/", "src/**/*.test.ts", "src/*test.ts/"],
+    "exclude": ["src/testing/", "src/**/*.test.ts", "src/*test.ts/", "*.js"],
     "rules": {
       "tags": ["recommended"],
       "include": [],
