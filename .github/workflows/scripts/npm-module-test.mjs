@@ -1,4 +1,4 @@
-import stackQL from "@stackql/stackqljs"; // Adjust this if the import path differs
+import { StackQL } from "@stackql/stackqljs"; // Adjust this if the import path differs
 const assert = require("assert").strict;
 
 async function runTests() {
