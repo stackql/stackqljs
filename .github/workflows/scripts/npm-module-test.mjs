@@ -4,7 +4,7 @@ const assert = require("assert").strict;
 async function runTests() {
   try {
     // Initialize stackQL
-    await stackQL.initialize({ serverMode: false });
+    await StackQL.initialize({ serverMode: false });
 
     // Define queries
     const providerQuery = "SHOW PROVIDERS";
