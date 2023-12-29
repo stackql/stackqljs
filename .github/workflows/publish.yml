@@ -53,4 +53,4 @@ jobs:
         run: npm install @stackql/stackqljs@${{ env.VERSION }}
 
       - name: Run Integration Test Script
-        run: node ./scripts/npm-module-test.js
+        run: node ./.github/workflows/scripts/npm-module-test.js
