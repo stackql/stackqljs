@@ -46,3 +46,9 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install Published Package for Testing
+        run: npm install -g @stackql/stackqljs@${{ env.VERSION }}
+
+      - name: Run Integration Test
+        run: stackql exec "SHOW PROVIDERS"
