@@ -47,8 +47,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Install Published Package for Testing
-        run: npm install -g @stackql/stackqljs@${{ env.VERSION }}
+      - name: Install Dependencies for Test
+        run: npm install @stackql/stackqljs@${{ env.VERSION }}
 
-      - name: Run Integration Test
-        run: stackql exec "SHOW PROVIDERS"
+      - name: Run Integration Test Script
+        run: node test_script.js
