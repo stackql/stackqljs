@@ -26,13 +26,15 @@ jobs:
       - name: Determine Version
         id: get_version
         run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           if [ "${{ github.event_name }}" = "release" ]; then
-            echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+            VERSION=${{ github.event.release.tag_name }}
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            VERSION=${{ github.event.inputs.version }}-$SHORT_SHA
           elif [ "${{ github.ref }}" = "refs/heads/dev/nodejs-support" ]; then
-            echo "VERSION=0.0.0-test" >> $GITHUB_ENV
+            VERSION=0.0.0-test-$SHORT_SHA
           fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build NPM Package
         run: |
