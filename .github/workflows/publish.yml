@@ -39,7 +39,7 @@ jobs:
       - name: Build NPM Package
         run: |
           echo "Building Version ${{ env.VERSION }}"
-          deno run -A scripts/build-npm.ts ${{ env.VERSION }}
+          deno run -A  npm-support/build-npm.ts ${{ env.VERSION }}
 
       - name: Publish to NPM
         run: |

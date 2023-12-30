@@ -13,6 +13,11 @@ await build({
 	shims: {
 		// see JS docs for overview and more options
 		deno: true,
+		crypto: false,
+		custom: [{
+			module: './npm-support/crypto_shim.js', // Path to your custom shim
+			globalNames: ['crypto'],
+		}],
 	},
 	package: {
 		// package.json properties
