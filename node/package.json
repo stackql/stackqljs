@@ -1,0 +1,26 @@
+{
+  "name": "@stackql/stackqljs",
+  "description": "StackQL integration for Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/stackqljs.git"
+  },
+  "keywords": [
+    "stackql",
+    "nodejs",
+    "integration"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yourusername/stackqljs/issues"
+  },
+  "homepage": "https://github.com/yourusername/stackqljs#readme",
+  "dependencies": {
+    "extract-zip": "^2.0.0"
+  }
+}

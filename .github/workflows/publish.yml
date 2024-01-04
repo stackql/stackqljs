@@ -3,9 +3,9 @@ name: Build and Publish Packages
 on:
   release:
     types: [created]
-  push:
-    branches:
-      - dev/nodejs-support
+  # push:
+  #   branches:
+  #     - dev/nodejs-support
   workflow_dispatch:
     inputs:
       version:

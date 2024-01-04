@@ -15,8 +15,8 @@
     "semiColons": true,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "include": ["src/", "npm-support/"],
-    "exclude": ["*.md", "*.json", "*.js", "*.ts", "*.tsx", "*.jsx", "*.html"]
+    "include": ["src/", "npm-support/", "node/"],
+    "exclude": ["*.md", "*.json", "*.ts", "*.tsx", "*.jsx", "*.html"]
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run"
