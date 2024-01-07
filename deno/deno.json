@@ -12,7 +12,9 @@
     "indentWidth": 4,
     "semiColons": true,
     "singleQuote": true,
-    "proseWrap": "preserve"
+    "proseWrap": "preserve",
+    "include": ["./src/**/*.ts"],
+    "exclude": ["/esm"]
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run"
