@@ -1,301 +1,301 @@
-import { assertExists } from "../deps.ts";
-import { Downloader } from "./services/downloader.ts";
-import osUtils from "./utils/os.ts";
-import { Server } from "./services/server.ts";
-import { Client } from "../deps.ts";
+import { assertExists } from '../deps.ts';
+import { Downloader } from './services/downloader.ts';
+import osUtils from './utils/os.ts';
+import { Server } from './services/server.ts';
+import { Client } from '../deps.ts';
 
 export interface StackQLConfig {
-  binaryPath?: string;
-  serverMode?: boolean;
-  connectionString?: string;
-  maxResults?: number;
-  pageLimit?: number;
-  maxDepth?: number;
-  apiTimeout?: number;
-  proxyHost?: string;
-  proxyPort?: number;
-  proxyUser?: string;
-  proxyPassword?: string;
-  proxyScheme?: "http" | "https";
-  outputFormat?: "csv" | "object"; // csv is not supported in server mode
+	binaryPath?: string;
+	serverMode?: boolean;
+	connectionString?: string;
+	maxResults?: number;
+	pageLimit?: number;
+	maxDepth?: number;
+	apiTimeout?: number;
+	proxyHost?: string;
+	proxyPort?: number;
+	proxyUser?: string;
+	proxyPassword?: string;
+	proxyScheme?: 'http' | 'https';
+	outputFormat?: 'csv' | 'object'; // csv is not supported in server mode
 }
 
 export class StackQL {
-  private binaryPath?: string; //The full path of the `stackql` executable (not supported in `server_mode`).
-  private downloader: Downloader = new Downloader();
-  private serverMode = false;
-  private connection?: Client;
-  private outputFormat: "csv" | "object" = "object";
-  private params: string[] = [];
-  private version: string | undefined; // The version number of the `stackql` executable (not supported in `server_mode`)
-  private sha: string | undefined; // The commit (short) sha for the installed `stackql` binary build  (not supported in `server_mode`).
-  constructor() {
-  }
+	private binaryPath?: string; //The full path of the `stackql` executable (not supported in `server_mode`).
+	private downloader: Downloader = new Downloader();
+	private serverMode = false;
+	private connection?: Client;
+	private outputFormat: 'csv' | 'object' = 'object';
+	private params: string[] = [];
+	private version: string | undefined; // The version number of the `stackql` executable (not supported in `server_mode`)
+	private sha: string | undefined; // The commit (short) sha for the installed `stackql` binary build  (not supported in `server_mode`).
+	constructor() {
+	}
 
-  /**
-   * Initialize the `stackql` executable and properties from the provided configuration object
-   * @param config The configuration object
-   * @returns The binary path of the `stackql` executable if `server_mode` is `false`, otherwise `undefined`
-   */
-  public async initialize(config: StackQLConfig) {
-    this.binaryPath = config.binaryPath;
-    this.serverMode = config.serverMode || false;
-    if (this.serverMode) {
-      await this.setupConnection(config.connectionString);
-      return;
-    }
-    if (this.binaryExist()) {
-      return;
-    }
-    this.binaryPath = await this.downloader.setupStackQL();
-    this.setProperties(config);
-  }
+	/**
+	 * Initialize the `stackql` executable and properties from the provided configuration object
+	 * @param config The configuration object
+	 * @returns The binary path of the `stackql` executable if `server_mode` is `false`, otherwise `undefined`
+	 */
+	public async initialize(config: StackQLConfig) {
+		this.binaryPath = config.binaryPath;
+		this.serverMode = config.serverMode || false;
+		if (this.serverMode) {
+			await this.setupConnection(config.connectionString);
+			return;
+		}
+		if (this.binaryExist()) {
+			return;
+		}
+		this.binaryPath = await this.downloader.setupStackQL();
+		this.setProperties(config);
+	}
 
-  getParams() {
-    return this.params;
-  }
+	getParams() {
+		return this.params;
+	}
 
-  getBinaryPath() {
-    return this.binaryPath;
-  }
+	getBinaryPath() {
+		return this.binaryPath;
+	}
 
-  async getVersion() {
-    if (!this.version) {
-      await this.updateVersion();
-    }
+	async getVersion() {
+		if (!this.version) {
+			await this.updateVersion();
+		}
 
-    return { version: this.version, sha: this.sha };
-  }
+		return { version: this.version, sha: this.sha };
+	}
 
-  /**
-   * Executes a query using the StackQL instance and returns the output.
-   *
-   * Depending on the `serverMode` attribute of the instance, this method
-   * either runs the query against the StackQL server or executes it locally.
-   * The method is designed to return the result in a suitable format for TypeScript
-   * environments, which could be an object or a string.
-   * When running a statement (not a query) the result is the return message of the statement with type `string`.
-   *
-   * @param query - The StackQL query string to be executed.
-   * @returns The output string result of the query.
-   *
-   * Example:
-   * ```
-   * const stackql = new StackQL();
-   * await stackql.initialize({ serverMode: false });
-   * const stackqlQuery = `SELECT ... FROM ... WHERE ...`;
-   * const result = await stackql.execute(stackqlQuery);
-   * ```
-   */
-  async execute(query: string): Promise<string | unknown[]> {
-    if (this.serverMode) {
-      // Execute the query using the server
-      const result = await this.runServerQuery(query);
-      return result as unknown[];
-    }
-    // Execute the query locally
-    const result = await this.runQuery(query);
+	/**
+	 * Executes a query using the StackQL instance and returns the output.
+	 *
+	 * Depending on the `serverMode` attribute of the instance, this method
+	 * either runs the query against the StackQL server or executes it locally.
+	 * The method is designed to return the result in a suitable format for TypeScript
+	 * environments, which could be an object or a string.
+	 * When running a statement (not a query) the result is the return message of the statement with type `string`.
+	 *
+	 * @param query - The StackQL query string to be executed.
+	 * @returns The output string result of the query.
+	 *
+	 * Example:
+	 * ```
+	 * const stackql = new StackQL();
+	 * await stackql.initialize({ serverMode: false });
+	 * const stackqlQuery = `SELECT ... FROM ... WHERE ...`;
+	 * const result = await stackql.execute(stackqlQuery);
+	 * ```
+	 */
+	async execute(query: string): Promise<string | unknown[]> {
+		if (this.serverMode) {
+			// Execute the query using the server
+			const result = await this.runServerQuery(query);
+			return result as unknown[];
+		}
+		// Execute the query locally
+		const result = await this.runQuery(query);
 
-    if (this.outputFormat === "object") {
-      try {
-        return JSON.parse(result) as unknown[];
-      } catch (error) {
-        return result;
-      }
-    }
+		if (this.outputFormat === 'object') {
+			try {
+				return JSON.parse(result) as unknown[];
+			} catch (error) {
+				return result;
+			}
+		}
 
-    return result;
-  }
+		return result;
+	}
 
-  async executeStatement(statement: string): Promise<string> {
-    if (this.serverMode) {
-      await this.runServerQuery(statement);
-      return "Statement executed";
-    }
-    const result = await this.runQuery(statement);
-    return result;
-  }
+	async executeStatement(statement: string): Promise<string> {
+		if (this.serverMode) {
+			await this.runServerQuery(statement);
+			return 'Statement executed';
+		}
+		const result = await this.runQuery(statement);
+		return result;
+	}
 
-  async executeQueriesAsync(
-    queries: string[],
-  ): Promise<string[] | unknown[][]> {
-    if (this.serverMode) {
-      throw new Error("Async queries are not supported in server mode");
-    }
-    const results = await Promise.all(
-      queries.map(async (query) => await this.runQuery(query)),
-    );
+	async executeQueriesAsync(
+		queries: string[],
+	): Promise<string[] | unknown[][]> {
+		if (this.serverMode) {
+			throw new Error('Async queries are not supported in server mode');
+		}
+		const results = await Promise.all(
+			queries.map(async (query) => await this.runQuery(query)),
+		);
 
-    // Parse each result as JSON and return the combined array
-    return results.map((result) => {
-      try {
-        if (this.outputFormat === "object") {
-          return JSON.parse(result);
-        }
-        return result;
-      } catch (error) {
-        return result;
-      }
-    });
-  }
+		// Parse each result as JSON and return the combined array
+		return results.map((result) => {
+			try {
+				if (this.outputFormat === 'object') {
+					return JSON.parse(result);
+				}
+				return result;
+			} catch (error) {
+				return result;
+			}
+		});
+	}
 
-  /**
-   * Upgrade the `stackql` executable to the latest version
-   * @returns The version number of the `stackql` executable (not supported in `server_mode`)
-   */
-  async upgrade() {
-    this.binaryPath = await this.downloader.upgradeStackQL();
-    await this.updateVersion();
-    return this.getVersion();
-  }
+	/**
+	 * Upgrade the `stackql` executable to the latest version
+	 * @returns The version number of the `stackql` executable (not supported in `server_mode`)
+	 */
+	async upgrade() {
+		this.binaryPath = await this.downloader.upgradeStackQL();
+		await this.updateVersion();
+		return this.getVersion();
+	}
 
-  private async updateVersion() {
-    if (!this.binaryPath) {
-      throw new Error("Binary path not found");
-    }
-    const output = await osUtils.runCommand(this.binaryPath, ["--version"]);
-    if (output) {
-      const versionTokens: string[] = output.split("\n")[0].split(" ");
-      const version: string = versionTokens[1];
-      const sha: string = versionTokens[3].replace("(", "").replace(
-        ")",
-        "",
-      );
+	private async updateVersion() {
+		if (!this.binaryPath) {
+			throw new Error('Binary path not found');
+		}
+		const output = await osUtils.runCommand(this.binaryPath, ['--version']);
+		if (output) {
+			const versionTokens: string[] = output.split('\n')[0].split(' ');
+			const version: string = versionTokens[1];
+			const sha: string = versionTokens[3].replace('(', '').replace(
+				')',
+				'',
+			);
 
-      this.version = version;
-      this.sha = sha;
-    }
-  }
+			this.version = version;
+			this.sha = sha;
+		}
+	}
 
-  private binaryExist() {
-    return !!this.binaryPath && osUtils.fileExists(this.binaryPath);
-  }
-  private setProxyProperties(config: StackQLConfig): void {
-    if (config.proxyHost !== undefined) {
-      this.params.push("--http.proxy.host");
-      this.params.push(config.proxyHost);
-    }
+	private binaryExist() {
+		return !!this.binaryPath && osUtils.fileExists(this.binaryPath);
+	}
+	private setProxyProperties(config: StackQLConfig): void {
+		if (config.proxyHost !== undefined) {
+			this.params.push('--http.proxy.host');
+			this.params.push(config.proxyHost);
+		}
 
-    if (config.proxyPort !== undefined) {
-      this.params.push("--http.proxy.port");
-      this.params.push(config.proxyPort.toString());
-    }
+		if (config.proxyPort !== undefined) {
+			this.params.push('--http.proxy.port');
+			this.params.push(config.proxyPort.toString());
+		}
 
-    if (config.proxyUser !== undefined) {
-      this.params.push("--http.proxy.user");
-      this.params.push(config.proxyUser);
-    }
+		if (config.proxyUser !== undefined) {
+			this.params.push('--http.proxy.user');
+			this.params.push(config.proxyUser);
+		}
 
-    if (config.proxyPassword !== undefined) {
-      this.params.push("--http.proxy.password");
-      this.params.push(config.proxyPassword);
-    }
+		if (config.proxyPassword !== undefined) {
+			this.params.push('--http.proxy.password');
+			this.params.push(config.proxyPassword);
+		}
 
-    if (config.proxyScheme !== undefined) {
-      if (!["http", "https"].includes(config.proxyScheme)) {
-        throw new Error(
-          `Invalid proxyScheme. Expected one of ['http', 'https'], got ${config.proxyScheme}.`,
-        );
-      }
-      this.params.push("--http.proxy.scheme");
-      this.params.push(config.proxyScheme);
-    }
-  }
+		if (config.proxyScheme !== undefined) {
+			if (!['http', 'https'].includes(config.proxyScheme)) {
+				throw new Error(
+					`Invalid proxyScheme. Expected one of ['http', 'https'], got ${config.proxyScheme}.`,
+				);
+			}
+			this.params.push('--http.proxy.scheme');
+			this.params.push(config.proxyScheme);
+		}
+	}
 
-  private setProperties(config: StackQLConfig): void {
-    if (config.maxResults !== undefined) {
-      this.params.push("--http.response.maxResults");
-      this.params.push(config.maxResults.toString());
-    }
+	private setProperties(config: StackQLConfig): void {
+		if (config.maxResults !== undefined) {
+			this.params.push('--http.response.maxResults');
+			this.params.push(config.maxResults.toString());
+		}
 
-    if (config.pageLimit !== undefined) {
-      this.params.push("--http.response.pageLimit");
-      this.params.push(config.pageLimit.toString());
-    }
+		if (config.pageLimit !== undefined) {
+			this.params.push('--http.response.pageLimit');
+			this.params.push(config.pageLimit.toString());
+		}
 
-    if (config.maxDepth !== undefined) {
-      this.params.push("--indirect.depth.max");
-      this.params.push(config.maxDepth.toString());
-    }
+		if (config.maxDepth !== undefined) {
+			this.params.push('--indirect.depth.max');
+			this.params.push(config.maxDepth.toString());
+		}
 
-    if (config.apiTimeout !== undefined) {
-      this.params.push("--apirequesttimeout");
-      this.params.push(config.apiTimeout.toString());
-    }
+		if (config.apiTimeout !== undefined) {
+			this.params.push('--apirequesttimeout');
+			this.params.push(config.apiTimeout.toString());
+		}
 
-    if (config.proxyHost !== undefined) {
-      this.setProxyProperties(config);
-    }
+		if (config.proxyHost !== undefined) {
+			this.setProxyProperties(config);
+		}
 
-    this.setOutputFormat(config);
-  }
+		this.setOutputFormat(config);
+	}
 
-  private setOutputFormat(config: StackQLConfig): void {
-    if (config.outputFormat !== undefined) {
-      if (!["csv", "object"].includes(config.outputFormat)) {
-        throw new Error(
-          `Invalid outputFormat. Expected one of ['csv', 'object'], got ${config.outputFormat}.`,
-        );
-      }
-      this.outputFormat = config.outputFormat;
-    }
-    const outputParamValue = this.outputFormat === "csv" ? "csv" : "json";
-    this.params.push("--output");
-    this.params.push(outputParamValue);
-  }
+	private setOutputFormat(config: StackQLConfig): void {
+		if (config.outputFormat !== undefined) {
+			if (!['csv', 'object'].includes(config.outputFormat)) {
+				throw new Error(
+					`Invalid outputFormat. Expected one of ['csv', 'object'], got ${config.outputFormat}.`,
+				);
+			}
+			this.outputFormat = config.outputFormat;
+		}
+		const outputParamValue = this.outputFormat === 'csv' ? 'csv' : 'json';
+		this.params.push('--output');
+		this.params.push(outputParamValue);
+	}
 
-  /**
-   * Run a StackQL query
-   * @param query The StackQL query
-   * @returns The result of the query
-   */
-  private async runQuery(query: string) {
-    assertExists(this.binaryPath);
-    const args = ["exec", query].concat(this.params);
-    try {
-      const result = await osUtils.runCommand(this.binaryPath, args);
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw new Error(`StackQL query failed: ${error.message}`);
-    }
-  }
+	/**
+	 * Run a StackQL query
+	 * @param query The StackQL query
+	 * @returns The result of the query
+	 */
+	private async runQuery(query: string) {
+		assertExists(this.binaryPath);
+		const args = ['exec', query].concat(this.params);
+		try {
+			const result = await osUtils.runCommand(this.binaryPath, args);
+			return result;
+		} catch (error) {
+			console.error(error);
+			throw new Error(`StackQL query failed: ${error.message}`);
+		}
+	}
 
-  //////////////////////Server mode related methods
-  private async queryObjectFormat(query: string) {
-    assertExists(this.connection);
-    const pgResult = await this.connection.queryObject(query);
-    return pgResult.rows;
-  }
+	//////////////////////Server mode related methods
+	private async queryObjectFormat(query: string) {
+		assertExists(this.connection);
+		const pgResult = await this.connection.queryObject(query);
+		return pgResult.rows;
+	}
 
-  private async setupConnection(connectionString?: string) {
-    const server = new Server();
-    this.connection = await server.connect(connectionString);
-  }
+	private async setupConnection(connectionString?: string) {
+		const server = new Server();
+		this.connection = await server.connect(connectionString);
+	}
 
-  /**
-   * Close the connection to the stackql server, only available in server mode
-   */
-  public async closeConnection() {
-    if (this.connection) {
-      await this.connection.end();
-    }
-  }
+	/**
+	 * Close the connection to the stackql server, only available in server mode
+	 */
+	public async closeConnection() {
+		if (this.connection) {
+			await this.connection.end();
+		}
+	}
 
-  /**
-   * Run a StackQL query on the server
-   * @param query The StackQL query
-   * @returns The result of the query
-   */
-  private async runServerQuery(query: string) {
-    try {
-      if (this.outputFormat === "csv") {
-        throw new Error("CSV output is not supported in server mode");
-      }
-      return await this.queryObjectFormat(query);
-    } catch (error) {
-      console.error(error);
-      throw new Error(`StackQL server query failed: ${error.message}`);
-    }
-  }
+	/**
+	 * Run a StackQL query on the server
+	 * @param query The StackQL query
+	 * @returns The result of the query
+	 */
+	private async runServerQuery(query: string) {
+		try {
+			if (this.outputFormat === 'csv') {
+				throw new Error('CSV output is not supported in server mode');
+			}
+			return await this.queryObjectFormat(query);
+		} catch (error) {
+			console.error(error);
+			throw new Error(`StackQL server query failed: ${error.message}`);
+		}
+	}
 }

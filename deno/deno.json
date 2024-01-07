@@ -13,8 +13,8 @@
     "semiColons": true,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "include": ["./src/**/*.ts"],
-    "exclude": ["/esm"]
+    "exclude": ["/esm"],
+    "include": ["./**/*.ts"]
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run"

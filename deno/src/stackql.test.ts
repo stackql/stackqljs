@@ -5,12 +5,12 @@ import {
 	assertSpyCall,
 	assertStringIncludes,
 	spy,
-} from '../dev_deps.ts';
+} from "../dev_deps.ts";
 
-import { StackQL } from './stackql.ts';
-import { isCsvString, startStackQLServer } from '../../testing/utils.ts';
-import { Downloader } from './services/downloader.ts';
-import osUtils from './utils/os.ts';
+import { StackQL } from "./stackql.ts";
+import { isCsvString, startStackQLServer } from "../../testing/utils.ts";
+import { Downloader } from "./services/downloader.ts";
+import osUtils from "./utils/os.ts";
 
 const downloader = new Downloader();
 
@@ -18,15 +18,15 @@ const setupStackQL = async () => {
 	await downloader.setupStackQL();
 };
 
-Deno.test('Query: Execute Statement and Query', async () => {
+Deno.test("Query: Execute Statement and Query", async () => {
 	await setupStackQL();
 
 	// Arrange
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false });
 
-	const pullQuery = 'REGISTRY PULL github;';
-	const providerQuery = 'SHOW PROVIDERS';
+	const pullQuery = "REGISTRY PULL github;";
+	const providerQuery = "SHOW PROVIDERS";
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql' and name='stackql'`;
 
@@ -40,15 +40,15 @@ Deno.test('Query: Execute Statement and Query', async () => {
 	};
 
 	// Assert
-	assertStringIncludes(result, 'name');
-	assertStringIncludes(result, 'version');
-	assertStringIncludes(result, 'github');
-	assertEquals(githubResultObj.name, 'stackql');
+	assertStringIncludes(result, "name");
+	assertStringIncludes(result, "version");
+	assertStringIncludes(result, "github");
+	assertEquals(githubResultObj.name, "stackql");
 });
 
-Deno.test('Configuration: Apply Settings from Configs', async () => {
+Deno.test("Configuration: Apply Settings from Configs", async () => {
 	await setupStackQL();
-	const runCliSpy = spy(osUtils, 'runCommand');
+	const runCliSpy = spy(osUtils, "runCommand");
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
@@ -65,36 +65,36 @@ Deno.test('Configuration: Apply Settings from Configs', async () => {
 	const params = stackQL.getParams();
 	assertEquals(params.length, 10);
 	assertEquals(params, [
-		'--http.response.maxResults',
-		'100',
-		'--http.response.pageLimit',
-		'10',
-		'--indirect.depth.max',
-		'5',
-		'--apirequesttimeout',
-		'5000',
-		'--output',
-		'json',
+		"--http.response.maxResults",
+		"100",
+		"--http.response.pageLimit",
+		"10",
+		"--indirect.depth.max",
+		"5",
+		"--apirequesttimeout",
+		"5000",
+		"--output",
+		"json",
 	]);
 	const binaryPath = stackQL.getBinaryPath();
 	assert(binaryPath);
 	assertSpyCall(runCliSpy, 0, {
-		args: [binaryPath, ['exec', githubTestQuery, ...params]],
+		args: [binaryPath, ["exec", githubTestQuery, ...params]],
 	});
 	runCliSpy.restore();
 });
 
-Deno.test('Configuration: Apply Proxy Settings from Configs', async () => {
+Deno.test("Configuration: Apply Proxy Settings from Configs", async () => {
 	await setupStackQL();
-	const runCommandSpy = spy(osUtils, 'runCommand');
+	const runCommandSpy = spy(osUtils, "runCommand");
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
-		proxyHost: 'localhost',
+		proxyHost: "localhost",
 		proxyPort: 8080,
-		proxyUser: 'user',
-		proxyPassword: 'password',
-		proxyScheme: 'https',
+		proxyUser: "user",
+		proxyPassword: "password",
+		proxyScheme: "https",
 	});
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`;
@@ -103,33 +103,33 @@ Deno.test('Configuration: Apply Proxy Settings from Configs', async () => {
 
 	const params = stackQL.getParams();
 	assertEquals(params, [
-		'--http.proxy.host',
-		'localhost',
-		'--http.proxy.port',
-		'8080',
-		'--http.proxy.user',
-		'user',
-		'--http.proxy.password',
-		'password',
-		'--http.proxy.scheme',
-		'https',
-		'--output',
-		'json',
+		"--http.proxy.host",
+		"localhost",
+		"--http.proxy.port",
+		"8080",
+		"--http.proxy.user",
+		"user",
+		"--http.proxy.password",
+		"password",
+		"--http.proxy.scheme",
+		"https",
+		"--output",
+		"json",
 	]);
 	const binaryPath = stackQL.getBinaryPath();
 	assert(binaryPath);
 	assertSpyCall(runCommandSpy, 0, {
-		args: [binaryPath, ['exec', githubTestQuery, ...params]],
+		args: [binaryPath, ["exec", githubTestQuery, ...params]],
 	});
 	runCommandSpy.restore();
 });
 
-Deno.test('Query: json output', async () => {
+Deno.test("Query: json output", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
-		outputFormat: 'object',
+		outputFormat: "object",
 	});
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`;
@@ -139,18 +139,18 @@ Deno.test('Query: json output', async () => {
 	const params = stackQL.getParams();
 
 	assertEquals(params, [
-		'--output',
-		'json',
+		"--output",
+		"json",
 	]);
 	assert(Array.isArray(result));
 });
 
-Deno.test('Query: csv output', async () => {
+Deno.test("Query: csv output", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
-		outputFormat: 'csv',
+		outputFormat: "csv",
 	});
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql'`;
@@ -159,22 +159,22 @@ Deno.test('Query: csv output', async () => {
 	const params = stackQL.getParams();
 
 	assertEquals(params, [
-		'--output',
-		'csv',
+		"--output",
+		"csv",
 	]);
 	assert(!Array.isArray(result));
 	assert(await isCsvString(result));
 });
 
-Deno.test('Server mode: csv output throw error', async () => {
+Deno.test("Server mode: csv output throw error", async () => {
 	const { closeProcess } = await startStackQLServer();
 	const stackQL = new StackQL();
 	try {
 		await stackQL.initialize({
 			serverMode: true,
-			outputFormat: 'csv',
+			outputFormat: "csv",
 			connectionString:
-				'postgres://postgres:password@localhost:5444/postgres',
+				"postgres://postgres:password@localhost:5444/postgres",
 		});
 		const testQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
 
@@ -183,7 +183,7 @@ Deno.test('Server mode: csv output throw error', async () => {
 		assert(error);
 		assert(
 			error.message.includes(
-				'csv output is not supported in server mode',
+				"csv output is not supported in server mode",
 			),
 		);
 	} finally {
@@ -192,7 +192,7 @@ Deno.test('Server mode: csv output throw error', async () => {
 	}
 });
 
-Deno.test('Server mode: Query', async () => {
+Deno.test("Server mode: Query", async () => {
 	const { closeProcess } = await startStackQLServer();
 	const stackQL = new StackQL();
 
@@ -201,9 +201,9 @@ Deno.test('Server mode: Query', async () => {
 		await stackQL.initialize({
 			serverMode: true,
 			connectionString:
-				'postgres://postgres:password@localhost:5444/postgres',
+				"postgres://postgres:password@localhost:5444/postgres",
 		});
-		const pullQuery = 'REGISTRY PULL github;';
+		const pullQuery = "REGISTRY PULL github;";
 		const showServiceQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
 
 		// Act
@@ -216,7 +216,7 @@ Deno.test('Server mode: Query', async () => {
 		const result = showServiceResult[0] as {
 			name: string;
 		};
-		assertEquals(result.name, 'repos');
+		assertEquals(result.name, "repos");
 	} finally {
 		// Cleanup
 		await closeProcess();
@@ -224,13 +224,13 @@ Deno.test('Server mode: Query', async () => {
 	}
 });
 
-Deno.test('executeQueriesAsync: object format', async () => {
+Deno.test("executeQueriesAsync: object format", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false });
 
-	const pullQuery = 'REGISTRY PULL github;';
-	const providerQuery = 'SHOW PROVIDERS';
+	const pullQuery = "REGISTRY PULL github;";
+	const providerQuery = "SHOW PROVIDERS";
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql' and name='stackql'`;
 
@@ -248,19 +248,19 @@ Deno.test('executeQueriesAsync: object format', async () => {
 		id: string;
 		name: string;
 	};
-	assertEquals(githubResultObj.name, 'stackql');
+	assertEquals(githubResultObj.name, "stackql");
 });
 
-Deno.test('executeQueriesAsync: csv format', async () => {
+Deno.test("executeQueriesAsync: csv format", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({
 		serverMode: false,
-		outputFormat: 'csv',
+		outputFormat: "csv",
 	});
 
-	const pullQuery = 'REGISTRY PULL github;';
-	const providerQuery = 'SHOW PROVIDERS';
+	const pullQuery = "REGISTRY PULL github;";
+	const providerQuery = "SHOW PROVIDERS";
 	const githubTestQuery =
 		`SELECT id, name from github.repos.repos where org='stackql' and name='stackql'`;
 
@@ -277,7 +277,7 @@ Deno.test('executeQueriesAsync: csv format', async () => {
 	assert(await isCsvString(githubResult));
 });
 
-Deno.test('GetVersion', async () => {
+Deno.test("GetVersion", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false });
@@ -292,7 +292,7 @@ Deno.test('GetVersion', async () => {
 	assert(shaRegex.test(sha));
 });
 
-Deno.test('GetVersion: getVersion when version and sha are undefined', async () => {
+Deno.test("GetVersion: getVersion when version and sha are undefined", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false });
@@ -315,7 +315,7 @@ Deno.test('GetVersion: getVersion when version and sha are undefined', async () 
 	assert(shaRegex.test(sha));
 });
 
-Deno.test('Upgrade: upgrade stackql', async () => {
+Deno.test("Upgrade: upgrade stackql", async () => {
 	await setupStackQL();
 	const stackQL = new StackQL();
 	await stackQL.initialize({ serverMode: false }) // deno-lint-ignore no-explicit-any

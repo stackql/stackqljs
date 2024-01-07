@@ -2,7 +2,7 @@
   "deno.enablePaths": ["/deno"],
   "deno.lint": true,
   "deno.unstable": true,
-  "deno.config": "/deno/deno.json",
+  "deno.config": "./deno/deno.json",
   "editor.formatOnSave": true,
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
