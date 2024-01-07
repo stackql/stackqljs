@@ -1,10 +1,10 @@
-const fs = require("fs/promises");
-const path = require("path");
-const { exec } = require("child_process");
-const https = require("https");
-const util = require("util");
+import fs from "fs/promises";
+import path from "path";
+import { exec } from "child_process";
+import https from "https";
+import util from "util";
+import extract from "extract-zip";
 const execPromise = util.promisify(exec);
-const extract = require("extract-zip");
 
 // Supported Operating Systems
 const SupportedOs = {
@@ -28,6 +28,12 @@ class Downloader {
     };
   }
 
+  /**
+   *
+   * @param {string} url
+   * @param {string} downloadDir
+   * @returns
+   */
   async downloadFile(url, downloadDir) {
     const file = fs.createWriteStream(downloadDir);
     return new Promise((resolve, reject) => {
@@ -45,6 +51,9 @@ class Downloader {
     });
   }
 
+  /**
+   * @returns {string} URL for the current OS.
+   */
   getUrl() {
     const key = this.os === "win32" ? SupportedOs.Windows : this.os;
     const url = this.urlMap[key];
@@ -54,6 +63,9 @@ class Downloader {
     return url;
   }
 
+  /**
+   * @returns {string} Name of the binary for the current OS.
+   */
   getBinaryName() {
     const binaryMap = {
       [SupportedOs.Windows]: "stackql.exe",
@@ -63,6 +75,10 @@ class Downloader {
     return binaryMap[this.os] || "stackql";
   }
 
+  /**
+   * Creates a download directory if it does not exist.
+   * @param {string} downloadDir
+   */
   async createDownloadDir(downloadDir) {
     try {
       await fs.mkdir(downloadDir, { recursive: true });
@@ -71,6 +87,12 @@ class Downloader {
     }
   }
 
+  /**
+   * Checks if the binary exists in the download directory.
+   * @param {string} binaryName
+   * @param {string} downloadDir
+   * @returns {boolean}
+   */
   async binaryExists(binaryName, downloadDir) {
     try {
       await fs.access(path.join(downloadDir, binaryName));
@@ -80,6 +102,10 @@ class Downloader {
     }
   }
 
+  /**
+   * Installs stackql.
+   * @param {string} downloadDir
+   */
   async installStackQL(downloadDir) {
     const url = this.getUrl();
     const archiveFileName = path.join(downloadDir, path.basename(url));

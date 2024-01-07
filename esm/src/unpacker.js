@@ -1,6 +1,6 @@
-const { exec } = require("child_process");
-const extract = require("extract-zip");
-const util = require("util");
+import { exec } from "child_process";
+import extract from "extract-zip";
+import util from "util";
 const execPromise = util.promisify(exec);
 
 /**

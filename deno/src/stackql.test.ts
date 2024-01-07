@@ -8,7 +8,7 @@ import {
 } from '../dev_deps.ts';
 
 import { StackQL } from './stackql.ts';
-import { isCsvString, startStackQLServer } from '../testing/utils.ts';
+import { isCsvString, startStackQLServer } from '../../testing/utils.ts';
 import { Downloader } from './services/downloader.ts';
 import osUtils from './utils/os.ts';
 
@@ -176,7 +176,7 @@ Deno.test('Server mode: csv output throw error', async () => {
 			connectionString:
 				'postgres://postgres:password@localhost:5444/postgres',
 		});
-		const testQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';'; // Replace with a valid query for your context
+		const testQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
 
 		await stackQL.execute(testQuery);
 	} catch (error) {
@@ -204,7 +204,7 @@ Deno.test('Server mode: Query', async () => {
 				'postgres://postgres:password@localhost:5444/postgres',
 		});
 		const pullQuery = 'REGISTRY PULL github;';
-		const showServiceQuery = 'SHOW SERVICES IN github LIKE \'%repos%\';'; // Replace with a valid query for your context
+		const showServiceQuery = "SHOW SERVICES IN github LIKE '%repos%';"; // Replace with a valid query for your context
 
 		// Act
 		await stackQL.executeStatement(pullQuery);

@@ -1,7 +1,13 @@
 {
   "lint": {
-    "include": ["src/", "npm-support/"],
-    "exclude": ["src/testing/", "src/**/*.test.ts", "src/*test.ts/", "*.js"],
+    "include": ["src/"],
+    "exclude": [
+      "src/testing/",
+      "src/**/*.test.ts",
+      "src/*test.ts/",
+      "*.js",
+      "esm/"
+    ],
     "rules": {
       "tags": ["recommended"],
       "include": [],
@@ -15,7 +21,7 @@
     "semiColons": true,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "include": ["src/", "npm-support/", "node/"],
+    "include": ["src/", "npm-support/"],
     "exclude": ["*.md", "*.json", "*.ts", "*.tsx", "*.jsx", "*.html"]
   },
   "tasks": {
