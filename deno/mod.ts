@@ -1,3 +1,3 @@
-import { StackQL } from "./src/stackql.ts";
+import { StackQL } from './src/stackql.ts';
 
 export { StackQL };
