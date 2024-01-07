@@ -1,7 +1,6 @@
 {
   "name": "@stackql/stackqljs",
   "description": "StackQL integration for Node.js",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,7 +21,9 @@
   },
   "homepage": "https://github.com/yourusername/stackqljs#readme",
   "dependencies": {
-    "extract-zip": "^2.0.0",
-    "jest": "^29.7.0"
+    "extract-zip": "^2.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.1.3"
   }
 }
