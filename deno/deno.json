@@ -1,13 +1,5 @@
 {
   "lint": {
-    "include": ["src/"],
-    "exclude": [
-      "src/testing/",
-      "src/**/*.test.ts",
-      "src/*test.ts/",
-      "*.js",
-      "esm/"
-    ],
     "rules": {
       "tags": ["recommended"],
       "include": [],
@@ -20,9 +12,7 @@
     "indentWidth": 4,
     "semiColons": true,
     "singleQuote": true,
-    "proseWrap": "preserve",
-    "include": ["src/", "npm-support/"],
-    "exclude": ["*.md", "*.json", "*.ts", "*.tsx", "*.jsx", "*.html"]
+    "proseWrap": "preserve"
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run"
