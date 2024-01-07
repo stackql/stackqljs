@@ -29,3 +29,7 @@
 ```
 deno task test <optional: test file path>
 ```
+
+## NPM Support
+
+- run ` deno run -A scripts/npm-build.ts`
