@@ -1,6 +1,6 @@
 import { Server } from './server.ts';
 import { assert } from '../../dev_deps.ts';
-import { startStackQLServer } from '../../testing/utils.ts';
+import { startStackQLServer } from '../../../testing/utils.ts';
 
 Deno.test('Successful Connection', async () => {
 	const { closeProcess } = await startStackQLServer();

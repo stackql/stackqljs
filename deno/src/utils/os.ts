@@ -1,48 +1,48 @@
 const fileExists = (path?: string) => {
 	if (!path) {
-		return false
+		return false;
 	}
 	try {
-		Deno.statSync(path)
-		return true
+		Deno.statSync(path);
+		return true;
 	} catch (error) {
 		if (error instanceof Deno.errors.NotFound) {
-			return false
+			return false;
 		}
-		throw error
+		throw error;
 	}
-}
+};
 
 const chmod = async (path: string, mode: number) => {
 	if (Deno.build.os !== 'windows') {
-		await Deno.chmod(path, mode)
+		await Deno.chmod(path, mode);
 	}
-}
+};
 
 const runCommand = async (path: string, args: string[]) => {
 	const process = new Deno.Command(path, {
 		args,
 		stdout: 'piped',
 		stderr: 'piped',
-	})
+	});
 
-	const { code, stdout, stderr } = await process.output()
+	const { code, stdout, stderr } = await process.output();
 
 	if (code === 0) {
-		const output = stdout
-		const result = new TextDecoder().decode(output)
-		return result
+		const output = stdout;
+		const result = new TextDecoder().decode(output);
+		return result;
 	} else {
-		const errorOutput = stderr
-		const errorMessage = new TextDecoder().decode(errorOutput)
-		throw new Error(errorMessage)
+		const errorOutput = stderr;
+		const errorMessage = new TextDecoder().decode(errorOutput);
+		throw new Error(errorMessage);
 	}
-}
+};
 
 const osUtils = {
 	fileExists,
 	chmod,
 	runCommand,
-}
+};
 
-export default osUtils
+export default osUtils;

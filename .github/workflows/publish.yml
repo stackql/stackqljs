@@ -1,0 +1,56 @@
+name: Build and Publish Packages
+
+on:
+  release:
+    types: [created]
+  # push:
+  #   branches:
+  #     - dev/nodejs-support
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for Manual Release (e.g., 1.2.3-beta)"
+        required: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "v1.x"
+
+      - name: Determine Version
+        id: get_version
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${{ github.event.release.tag_name }}
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}-$SHORT_SHA
+          elif [ "${{ github.ref }}" = "refs/heads/dev/nodejs-support" ]; then
+            VERSION=0.0.0-test-$SHORT_SHA
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build NPM Package
+        run: |
+          echo "Building Version ${{ env.VERSION }}"
+          deno run -A  npm-support/build-npm.ts ${{ env.VERSION }}
+
+      - name: Publish to NPM
+        run: |
+          cd npm
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install Dependencies for Test
+        run: npm install @stackql/stackqljs@${{ env.VERSION }}
+
+      - name: Run Integration Test Script
+        run: node ./.github/workflows/scripts/npm-module-test.mjs

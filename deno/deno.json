@@ -1,7 +1,5 @@
 {
   "lint": {
-    "include": ["src/"],
-    "exclude": ["src/testing/", "src/**/*.test.ts", "src/*test.ts/"],
     "rules": {
       "tags": ["recommended"],
       "include": [],
@@ -15,8 +13,8 @@
     "semiColons": true,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "include": ["src/"],
-    "exclude": ["*.md"]
+    "exclude": ["/esm"],
+    "include": ["./**/*.ts"]
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run"

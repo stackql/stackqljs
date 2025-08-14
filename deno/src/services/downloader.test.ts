@@ -1,6 +1,6 @@
 import { assertExists, assertSpyCalls, spy } from '../../dev_deps.ts';
 import { Downloader } from './downloader.ts';
-import { removeStackQLDownload } from '../../testing/utils.ts';
+import { removeStackQLDownload } from '../../../testing/utils.ts';
 
 Deno.test('Downloader setupStackQL and upgrade Test', async () => {
 	// Arrange
